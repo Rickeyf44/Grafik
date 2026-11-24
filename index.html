@@ -1,0 +1,3870 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#f3f5fa" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0b1120" media="(prefers-color-scheme: dark)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>СменаPro — Умный график работы</title>
+
+  <!-- Опциональные SDK платформ Telegram Mini Apps и MAX Mini Apps (загружаются асинхронно, не мешают офлайн-работе) -->
+  <script src="https://telegram.org/js/telegram-web-app.js" async></script>
+  <script src="https://st.max.ru/js/max-web-app.js" async></script>
+
+  <style>
+    /* =========================================================================
+       ДИЗАЙН-ТОКЕНЫ И ТЕМЫ (СВЕТЛАЯ / ТЁМНАЯ) В СТИЛЕ iOS / TELEGRAM / MAX
+       ========================================================================= */
+    :root {
+      --bg: #f3f5fa;
+      --bg-outer: #e9edf5;
+      --surface: #ffffff;
+      --surface-2: #f1f4f9;
+      --surface-glass: rgba(255, 255, 255, 0.88);
+      --text: #0f172a;
+      --text-2: #475569;
+      --text-3: #94a3b8;
+      --border: rgba(15, 23, 42, 0.08);
+      --border-strong: rgba(15, 23, 42, 0.14);
+      --accent: #4f46e5;
+      --accent-2: #2563eb;
+      --accent-soft: rgba(79, 70, 229, 0.11);
+      --accent-text: #4338ca;
+      --shadow-card: 0 4px 20px -4px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+      --shadow-float: 0 14px 36px -6px rgba(15, 23, 42, 0.18);
+
+      /* Цвета 7 типов смен (Светлая тема) */
+      --c-full24-bg: #e0e7ff; --c-full24-bd: #c7d2fe; --c-full24-tx: #312e81; --c-full24-solid: #4f46e5;
+      --c-day-bg: #dbeafe;    --c-day-bd: #bfdbfe;    --c-day-tx: #1e3a8a;    --c-day-solid: #2563eb;
+      --c-night-bg: #ede9fe;  --c-night-bd: #ddd6fe;  --c-night-tx: #4c1d95;  --c-night-solid: #7c3aed;
+      --c-extra-bg: #fef3c7;  --c-extra-bd: #fde68a;  --c-extra-tx: #78350f;  --c-extra-solid: #d97706;
+      --c-vac-bg: #d1fae5;    --c-vac-bd: #a7f3d0;    --c-vac-tx: #065f46;    --c-vac-solid: #059669;
+      --c-sick-bg: #ffe4e6;   --c-sick-bd: #fecdd3;   --c-sick-tx: #881337;   --c-sick-solid: #e11d48;
+      --c-off-bg: #ffffff;    --c-off-bd: rgba(15, 23, 42, 0.08); --c-off-tx: #64748b; --c-off-solid: #94a3b8;
+
+      --emerald: #10b981;
+      --emerald-soft: rgba(16, 185, 129, 0.13);
+      --rose: #f43f5e;
+      --rose-soft: rgba(244, 63, 94, 0.12);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.16);
+
+      --radius-xl: 22px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --safe-bottom: max(10px, env(safe-area-inset-bottom));
+    }
+
+    html.dark {
+      --bg: #0b1120;
+      --bg-outer: #050914;
+      --surface: #111a2e;
+      --surface-2: #19243d;
+      --surface-glass: rgba(17, 26, 46, 0.88);
+      --text: #f8fafc;
+      --text-2: #94a3b8;
+      --text-3: #64748b;
+      --border: rgba(148, 163, 184, 0.13);
+      --border-strong: rgba(148, 163, 184, 0.24);
+      --accent: #6366f1;
+      --accent-2: #3b82f6;
+      --accent-soft: rgba(99, 102, 241, 0.2);
+      --accent-text: #a5b4fc;
+      --shadow-card: 0 6px 24px -6px rgba(0, 0, 0, 0.45);
+      --shadow-float: 0 16px 40px -6px rgba(0, 0, 0, 0.65);
+
+      /* Цвета 7 типов смен (Тёмная тема) */
+      --c-full24-bg: rgba(99, 102, 241, 0.24); --c-full24-bd: rgba(129, 140, 248, 0.35); --c-full24-tx: #e0e7ff; --c-full24-solid: #6366f1;
+      --c-day-bg: rgba(59, 130, 246, 0.24);    --c-day-bd: rgba(96, 165, 250, 0.35);    --c-day-tx: #dbeafe;    --c-day-solid: #3b82f6;
+      --c-night-bg: rgba(139, 92, 246, 0.25);  --c-night-bd: rgba(167, 139, 250, 0.35); --c-night-tx: #ede9fe;  --c-night-solid: #8b5cf6;
+      --c-extra-bg: rgba(245, 158, 11, 0.24);  --c-extra-bd: rgba(251, 191, 36, 0.38);  --c-extra-tx: #fef3c7;  --c-extra-solid: #f59e0b;
+      --c-vac-bg: rgba(16, 185, 129, 0.22);    --c-vac-bd: rgba(52, 211, 153, 0.35);    --c-vac-tx: #d1fae5;    --c-vac-solid: #10b981;
+      --c-sick-bg: rgba(244, 63, 94, 0.22);    --c-sick-bd: rgba(251, 113, 133, 0.35);  --c-sick-tx: #ffe4e6;   --c-sick-solid: #f43f5e;
+      --c-off-bg: #111a2e;                     --c-off-bd: rgba(148, 163, 184, 0.12);   --c-off-tx: #94a3b8;    --c-off-solid: #475569;
+
+      --emerald-soft: rgba(16, 185, 129, 0.18);
+      --rose-soft: rgba(244, 63, 94, 0.18);
+      --amber-soft: rgba(245, 158, 11, 0.22);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-outer);
+      color: var(--text);
+      overscroll-behavior-y: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 0;
+      touch-action: manipulation;
+    }
+
+    .app-shell {
+      max-width: 460px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background: var(--bg);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    @media (min-width: 480px) {
+      .app-shell {
+        box-shadow: 0 0 0 1px var(--border), 0 24px 60px rgba(0, 0, 0, 0.16);
+      }
+    }
+
+    /* =========================================================================
+       ШАПКА (GLASSMORPHISM) И ЖИВОЙ СТАТУС
+       ========================================================================= */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: var(--surface-glass);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 14px 10px;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #4f46e5, #2563eb 55%, #7c3aed);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 6px 16px -4px rgba(79, 70, 229, 0.45);
+    }
+
+    .brand-meta { min-width: 0; }
+
+    .brand-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge-platform {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+    .badge-platform.telegram { background: rgba(42, 171, 238, 0.15); color: #0284c7; }
+    html.dark .badge-platform.telegram { color: #38bdf8; }
+    .badge-platform.max { background: rgba(124, 58, 237, 0.16); color: #6d28d9; }
+    html.dark .badge-platform.max { color: #c4b5fd; }
+    .badge-platform.web { background: var(--surface-2); color: var(--text-2); }
+
+    .cloud-dot-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-2);
+    }
+
+    .cloud-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-3);
+      flex-shrink: 0;
+    }
+    .cloud-dot.synced  { background: var(--emerald); box-shadow: 0 0 0 3px var(--emerald-soft); }
+    .cloud-dot.syncing { background: var(--amber); animation: pulse 1.1s infinite; }
+    .cloud-dot.error   { background: var(--rose); box-shadow: 0 0 0 3px var(--rose-soft); }
+
+    .header-title {
+      margin: 2px 0 0;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      min-width: 40px;
+      height: 40px;
+      padding: 0 10px;
+      border-radius: 13px;
+      background: var(--surface-2);
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      transition: transform 0.12s ease, background 0.15s ease;
+    }
+    .icon-btn:active { transform: scale(0.94); }
+
+    /* Виджет обратного отсчёта / текущей смены */
+    .status-pill {
+      margin-top: 10px;
+      padding: 9px 12px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .status-pill.live {
+      background: var(--emerald-soft);
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+    .status-pill.urgent {
+      background: var(--accent-soft);
+      border-color: rgba(99, 102, 241, 0.32);
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .live-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--emerald);
+      box-shadow: 0 0 0 4px var(--emerald-soft);
+      animation: pulse 1.6s infinite;
+    }
+
+    .status-main {
+      font-size: 12.5px;
+      font-weight: 800;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .status-sub {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .status-progress {
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.22);
+      overflow: hidden;
+      margin-top: 5px;
+    }
+    .status-progress > div {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--emerald);
+    }
+
+    .mini-chip-btn {
+      padding: 6px 10px;
+      min-height: 32px;
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      flex-shrink: 0;
+      transition: transform 0.12s ease;
+    }
+    .mini-chip-btn:active { transform: scale(0.95); }
+
+    /* =========================================================================
+       БАННЕР «ЗАВТРА НА СМЕНУ!»
+       ========================================================================= */
+    .tomorrow-wrap { padding: 12px 14px 0; }
+    .tomorrow-card {
+      width: 100%;
+      text-align: left;
+      padding: 14px 16px;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, #f59e0b 0%, #f97316 52%, #ec4899 100%);
+      color: #fff;
+      box-shadow: 0 10px 26px -6px rgba(249, 115, 22, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: transform 0.14s ease;
+    }
+    .tomorrow-card:active { transform: scale(0.98); }
+
+    .tomorrow-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* =========================================================================
+       ОСНОВНОЙ КОНТЕНТ И КАРТОЧКИ
+       ========================================================================= */
+    .main-content {
+      flex: 1;
+      padding: 12px 14px calc(86px + var(--safe-bottom));
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 14px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 14.5px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .muted { color: var(--text-2); }
+    .small { font-size: 12px; }
+    .xs { font-size: 11px; }
+
+    /* Сегментированный контрол */
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      padding: 4px;
+      border-radius: 14px;
+      background: var(--surface-2);
+      gap: 4px;
+    }
+    .segmented.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .segmented-btn {
+      min-height: 36px;
+      border-radius: 11px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-2);
+      transition: all 0.16s ease;
+    }
+    .segmented-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    }
+
+    .period-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      gap: 8px;
+    }
+    .period-title { font-size: 16px; font-weight: 800; text-align: center; }
+    .period-sub   { font-size: 11.5px; font-weight: 600; color: var(--text-2); text-align: center; margin-top: 2px; }
+
+    /* =========================================================================
+       КАЛЕНДАРЬ: МЕСЯЦ И ГОД
+       ========================================================================= */
+    .partner-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+    }
+    .partner-bar.active {
+      border-color: rgba(16, 185, 129, 0.45);
+      background: linear-gradient(90deg, var(--surface), var(--emerald-soft));
+    }
+
+    .weekdays-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+    .weekday-cell {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-3);
+      padding: 3px 0;
+    }
+    .weekday-cell.weekend { color: var(--rose); }
+
+    .month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .day-cell {
+      position: relative;
+      min-height: 62px;
+      border-radius: 14px;
+      border: 1px solid var(--c-off-bd);
+      background: var(--c-off-bg);
+      color: var(--c-off-tx);
+      padding: 5px 2px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      transition: transform 0.12s ease;
+    }
+    .day-cell:active { transform: scale(0.93); }
+
+    .day-cell.type-full24   { background: var(--c-full24-bg); border-color: var(--c-full24-bd); color: var(--c-full24-tx); }
+    .day-cell.type-day      { background: var(--c-day-bg);    border-color: var(--c-day-bd);    color: var(--c-day-tx); }
+    .day-cell.type-night    { background: var(--c-night-bg);  border-color: var(--c-night-bd);  color: var(--c-night-tx); }
+    .day-cell.type-extra    { background: var(--c-extra-bg);  border-color: var(--c-extra-bd);  color: var(--c-extra-tx); }
+    .day-cell.type-vacation { background: var(--c-vac-bg);    border-color: var(--c-vac-bd);    color: var(--c-vac-tx); }
+    .day-cell.type-sick     { background: var(--c-sick-bg);   border-color: var(--c-sick-bd);   color: var(--c-sick-tx); }
+
+    .day-cell.is-today {
+      box-shadow: 0 0 0 2px var(--accent), 0 0 0 4px var(--surface);
+      z-index: 1;
+    }
+    .day-cell.common-off {
+      border: 1.5px solid var(--emerald);
+      box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.2);
+    }
+    .day-cell.is-today.common-off {
+      box-shadow: 0 0 0 2px var(--accent), inset 0 0 0 1.5px var(--emerald);
+    }
+
+    .day-num { font-size: 12.5px; font-weight: 800; line-height: 1; }
+    .day-tag {
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 6px;
+      line-height: 1.1;
+      max-width: 96%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .type-full24 .day-tag   { background: var(--c-full24-solid); color: #fff; }
+    .type-day .day-tag      { background: var(--c-day-solid);    color: #fff; }
+    .type-night .day-tag    { background: var(--c-night-solid);  color: #fff; }
+    .type-extra .day-tag    { background: var(--c-extra-solid);  color: #fff; }
+    .type-vacation .day-tag { background: var(--c-vac-solid);    color: #fff; }
+    .type-sick .day-tag     { background: var(--c-sick-solid);   color: #fff; }
+    .type-off .day-tag      { color: var(--text-3); font-weight: 600; }
+
+    .day-dots {
+      height: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+    .dot-override {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #f97316;
+    }
+    .dot-note {
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      width: 5px;
+      height: 5px;
+      border-radius: 2px;
+      background: currentColor;
+      opacity: 0.55;
+    }
+    .heart-mini { color: var(--emerald); display: inline-flex; line-height: 1; }
+
+    /* Годовой обзор */
+    .year-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .year-month-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 10px;
+      text-align: left;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.12s ease;
+    }
+    .year-month-card:active { transform: scale(0.97); }
+    .year-month-card.current { border-color: var(--accent); }
+
+    .mini-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      margin-top: 7px;
+    }
+    .mini-dot {
+      aspect-ratio: 1 / 1;
+      border-radius: 3px;
+      background: var(--surface-2);
+    }
+    .mini-dot.type-full24   { background: var(--c-full24-solid); }
+    .mini-dot.type-day      { background: var(--c-day-solid); }
+    .mini-dot.type-night    { background: var(--c-night-solid); }
+    .mini-dot.type-extra    { background: var(--c-extra-solid); }
+    .mini-dot.type-vacation { background: var(--c-vac-solid); }
+    .mini-dot.type-sick     { background: var(--c-sick-solid); }
+    .mini-dot.common-off    { background: rgba(16, 185, 129, 0.48); }
+    .mini-dot.is-today      { box-shadow: 0 0 0 1.5px var(--text); }
+
+    .legend-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+    .legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 9px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      color: var(--text-2);
+    }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* =========================================================================
+       ДОХОД И СТАТИСТИКА
+       ========================================================================= */
+    .hero-income {
+      border-radius: var(--radius-xl);
+      padding: 18px;
+      background: linear-gradient(135deg, #4f46e5 0%, #2563eb 52%, #7c3aed 100%);
+      color: #fff;
+      box-shadow: 0 12px 28px -8px rgba(79, 70, 229, 0.45);
+    }
+    .hero-amount { font-size: 31px; font-weight: 900; letter-spacing: -0.02em; margin-top: 4px; }
+    .hero-progress-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.22);
+      overflow: hidden;
+      margin-top: 7px;
+    }
+    .hero-progress-bar > div { height: 100%; border-radius: 999px; background: #fff; transition: width 0.4s ease; }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 13px;
+      box-shadow: var(--shadow-card);
+    }
+    .kpi-val { font-size: 18.5px; font-weight: 800; margin-top: 4px; }
+
+    .chart-bars {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 5px;
+      align-items: end;
+      height: 145px;
+      padding-top: 10px;
+    }
+    .chart-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      gap: 5px;
+    }
+    .chart-bar {
+      width: 100%;
+      min-height: 7px;
+      border-radius: 7px 7px 3px 3px;
+      background: var(--surface-2);
+      transition: height 0.3s ease, background 0.2s ease;
+    }
+    .chart-bar.selected { background: linear-gradient(180deg, #6366f1, #2563eb); }
+    .chart-lbl { font-size: 9.5px; font-weight: 700; color: var(--text-3); }
+    .chart-lbl.selected { color: var(--accent-text); }
+
+    /* =========================================================================
+       ФОРМЫ, КНОПКИ, ТУМБЛЕРЫ
+       ========================================================================= */
+    .btn {
+      width: 100%;
+      min-height: 46px;
+      padding: 10px 16px;
+      border-radius: 15px;
+      font-size: 13.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.12s ease, opacity 0.15s ease;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: linear-gradient(135deg, #4f46e5, #2563eb);
+      color: #fff;
+      box-shadow: 0 8px 20px -6px rgba(79, 70, 229, 0.48);
+    }
+    .btn-secondary { background: var(--surface-2); color: var(--text); }
+    .btn-emerald { background: var(--emerald); color: #fff; }
+    .btn-danger-soft { background: var(--rose-soft); color: var(--rose); }
+    .btn-sm { min-height: 38px; font-size: 12px; padding: 8px 12px; border-radius: 12px; }
+
+    .field-label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-2);
+      margin-bottom: 6px;
+    }
+    .input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border-radius: 13px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface-2);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .input:focus { border-color: var(--accent); }
+    textarea.input { min-height: 70px; resize: none; font-size: 13px; font-weight: 500; }
+
+    .switch {
+      width: 48px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--border-strong);
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.2s ease;
+    }
+    .switch.on { background: var(--accent); }
+    .switch.on.green { background: var(--emerald); }
+    .switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+      transition: transform 0.2s ease;
+    }
+    .switch.on::after { transform: translateX(20px); }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .stack-8 { display: flex; flex-direction: column; gap: 8px; }
+    .stack-12 { display: flex; flex-direction: column; gap: 12px; }
+
+    .chip-choice {
+      min-height: 40px;
+      padding: 8px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      transition: all 0.15s ease;
+    }
+    .chip-choice.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* Чек-лист */
+    .check-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+    .check-item.done {
+      background: var(--emerald-soft);
+      border-color: rgba(16, 185, 129, 0.28);
+    }
+    .check-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+      text-align: left;
+      min-height: 28px;
+    }
+    .check-box {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      border: 2px solid var(--border-strong);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #fff;
+    }
+    .check-item.done .check-box { background: var(--emerald); border-color: var(--emerald); }
+    .check-text {
+      font-size: 13px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .check-item.done .check-text { text-decoration: line-through; color: var(--text-2); }
+
+    /* Предпросмотр пуша (Telegram / MAX) */
+    .preview-shell {
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid var(--border-strong);
+    }
+    .preview-shell.skin-telegram { background: #dbe9f6; }
+    html.dark .preview-shell.skin-telegram { background: #0e1621; }
+    .preview-shell.skin-max { background: #ece8fb; }
+    html.dark .preview-shell.skin-max { background: #141026; }
+
+    .preview-head {
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .preview-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 900;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .skin-telegram .preview-avatar { background: linear-gradient(135deg, #2aabee, #229ed9); }
+    .skin-max .preview-avatar { background: linear-gradient(135deg, #7c3aed, #ec4899); }
+
+    .preview-bubble {
+      margin: 12px;
+      padding: 13px;
+      border-radius: 16px 16px 16px 5px;
+      background: var(--surface);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      font-size: 12.5px;
+      line-height: 1.48;
+    }
+    .preview-inline-btn {
+      margin: 0 12px 12px;
+      width: calc(100% - 24px);
+      min-height: 38px;
+      border-radius: 12px;
+      font-size: 12.5px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.85);
+    }
+    html.dark .preview-inline-btn { background: rgba(255, 255, 255, 0.1); }
+    .skin-telegram .preview-inline-btn { color: #0284c7; }
+    html.dark .skin-telegram .preview-inline-btn { color: #38bdf8; }
+    .skin-max .preview-inline-btn { color: #6d28d9; }
+    html.dark .skin-max .preview-inline-btn { color: #c4b5fd; }
+
+    /* Диагностика */
+    .diag-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12.5px;
+    }
+    .diag-row:last-of-type { border-bottom: none; }
+    .status-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+    .status-tag.ok   { background: var(--emerald-soft); color: var(--emerald); }
+    .status-tag.warn { background: var(--amber-soft);   color: #d97706; }
+    html.dark .status-tag.warn { color: #fbbf24; }
+    .status-tag.err  { background: var(--rose-soft);    color: var(--rose); }
+    .status-tag.off  { background: var(--surface-2);    color: var(--text-2); }
+
+    .diag-result-box {
+      padding: 10px 12px;
+      border-radius: 13px;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.4;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+    }
+    .diag-result-box.ok  { background: var(--emerald-soft); border-color: rgba(16, 185, 129, 0.3); color: var(--emerald); }
+    .diag-result-box.err { background: var(--rose-soft);    border-color: rgba(244, 63, 94, 0.3);  color: var(--rose); }
+    .diag-result-box.warn { background: var(--amber-soft);  border-color: rgba(245, 158, 11, 0.3); color: #b45309; }
+    html.dark .diag-result-box.warn { color: #fcd34d; }
+
+    /* =========================================================================
+       НИЖНЯЯ НАВИГАЦИЯ (TAB BAR)
+       ========================================================================= */
+    .tabbar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 460px;
+      z-index: 30;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: var(--surface-glass);
+      border-top: 1px solid var(--border);
+      padding: 6px 8px var(--safe-bottom);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+    }
+    .tab-btn {
+      min-height: 50px;
+      border-radius: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-2);
+      position: relative;
+      transition: all 0.15s ease;
+    }
+    .tab-btn:active { transform: scale(0.95); }
+    .tab-btn.active { background: var(--accent-soft); color: var(--accent-text); }
+    .tab-btn span { font-size: 11px; font-weight: 700; }
+    .tab-badge-dot {
+      position: absolute;
+      top: 7px;
+      right: calc(50% - 16px);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 0 2px var(--surface);
+    }
+
+    /* =========================================================================
+       МОДАЛЬНЫЕ ОКНА, ШТОРКИ И ТОСТЫ
+       ========================================================================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(2, 6, 23, 0.58);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      animation: fadeIn 0.18s ease;
+    }
+    .modal-backdrop.center { align-items: center; padding: 16px; }
+
+    .sheet {
+      width: 100%;
+      max-width: 460px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--surface);
+      border-radius: 26px 26px 0 0;
+      padding: 12px 16px calc(18px + var(--safe-bottom));
+      border-top: 1px solid var(--border);
+      box-shadow: var(--shadow-float);
+      animation: slideUp 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .modal-dialog {
+      width: 100%;
+      max-width: 360px;
+      background: var(--surface);
+      border-radius: 24px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-float);
+      animation: popIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .sheet-handle {
+      width: 42px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--border-strong);
+      margin: 0 auto 12px;
+    }
+
+    .toast-stack {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 28px);
+      max-width: 400px;
+      z-index: 80;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      pointer-events: auto;
+      padding: 12px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      box-shadow: var(--shadow-float);
+      animation: popIn 0.2s ease;
+    }
+    .toast.info    { background: var(--text); color: var(--bg); }
+    .toast.success { background: #059669; color: #fff; }
+    .toast.warning { background: #d97706; color: #fff; }
+    .toast.error   { background: #e11d48; color: #fff; }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    @keyframes popIn { from { transform: scale(0.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- УМНАЯ ШАПКА -->
+    <header class="header">
+      <div class="header-top">
+        <div class="brand-row">
+          <div class="brand-logo" id="brandLogo"></div>
+          <div class="brand-meta">
+            <div class="brand-badges">
+              <span id="platformBadge" class="badge-platform web">Web</span>
+              <span id="cloudStatusWrap" class="cloud-dot-wrap">
+                <span id="cloudDot" class="cloud-dot"></span>
+                <span id="cloudLabel">Локально</span>
+              </span>
+            </div>
+            <h1 id="headerGreeting" class="header-title">СменаPro</h1>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="icon-btn" id="btnToday" title="Перейти на сегодня"></button>
+        </div>
+      </div>
+
+      <!-- Живой виджет статуса / обратного отсчёта -->
+      <div id="liveStatusBox"></div>
+    </header>
+
+    <!-- БАННЕР «ЗАВТРА НА СМЕНУ!» -->
+    <div id="tomorrowBannerBox"></div>
+
+    <!-- РАБОЧАЯ ОБЛАСТЬ ВКЛАДОК -->
+    <main id="mainContent" class="main-content"></main>
+
+    <!-- НИЖНЯЯ НАВИГАЦИЯ -->
+    <nav class="tabbar" id="tabBar">
+      <button type="button" class="tab-btn active" data-tab="calendar"></button>
+      <button type="button" class="tab-btn" data-tab="stats"></button>
+      <button type="button" class="tab-btn" data-tab="reminders"></button>
+      <button type="button" class="tab-btn" data-tab="settings"></button>
+    </nav>
+
+    <!-- МОДАЛЬНЫЕ ОКНА И ШТОРКИ -->
+    <div id="modalRoot"></div>
+
+    <!-- TOAST УВЕДОМЛЕНИЯ (вместо alert/confirm) -->
+    <div id="toastStack" class="toast-stack"></div>
+  </div>
+
+  <script>
+    /***************************************************************************
+     * 1. ГЛОБАЛЬНАЯ КОНФИГУРАЦИЯ ПРИЛОЖЕНИЯ (APP_CONFIG)
+     * Данные Supabase уже предзаполнены. Поля ботов TG / MAX и вебхука можно
+     * добавить позже по мере подключения.
+     ***************************************************************************/
+    const APP_CONFIG = {
+      SUPABASE_URL: "https://bxbvocxrbxzbltcpqtbh.supabase.co",
+      SUPABASE_ANON_KEY: "sb_publishable_9H62IaGQjpjZKXKsmWOqgA_vX_DdaZM",
+      SUPABASE_TABLE_USERS: "smena_users",
+      TG_BOT_USERNAME: "",
+      TG_APP_SHORT_NAME: "",
+      MAX_BOT_USERNAME: "",
+      PUSH_WEBHOOK_URL: "",
+      DEFAULT_TIMEZONE: "Europe/Moscow",
+      DEFAULT_CURRENCY: "₽",
+      APP_VERSION: "2.1-multi"
+    };
+
+    /***************************************************************************
+     * 2. ЯДРО ПРИЛОЖЕНИЯ «СменаPro» (Telegram + MAX + Web + Supabase)
+     ***************************************************************************/
+    (function () {
+      'use strict';
+
+      // === ВСТРОЕННЫЕ SVG-ИКОНКИ (ZERO EXTERNAL DEPENDENCIES) ===
+      const ICONS = {
+        calendarClock: '<path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h5"/><circle cx="16" cy="16" r="6"/><path d="M16 14v2.2l1.6 1"/>',
+        calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+        chart: '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+        bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+        sliders: '<line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/><line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/><circle cx="12" cy="4" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="14" cy="20" r="2"/>',
+        crosshair: '<circle cx="12" cy="12" r="9"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/>',
+        chevLeft: '<polyline points="15 18 9 12 15 6"/>',
+        chevRight: '<polyline points="9 18 15 12 9 6"/>',
+        chevDown: '<polyline points="6 9 12 15 18 9"/>',
+        heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+        users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+        backpack: '<path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M8 21v-5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v5"/><path d="M8 10h8"/>',
+        check: '<polyline points="20 6 9 17 4 12"/>',
+        plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+        trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+        x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+        copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+        share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
+        send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+        download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+        upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+        zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+        wallet: '<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>',
+        clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+        refresh: '<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
+        shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+        link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+        info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
+        sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+        cloud: '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>'
+      };
+
+      function svgIcon(name, size = 18, extraClass = '') {
+        const path = ICONS[name] || ICONS.info;
+        return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="${extraClass}" aria-hidden="true">${path}</svg>`;
+      }
+
+      // === КРОССПЛАТФОРМЕННЫЙ АДАПТЕР PlatformBridge (Telegram + MAX + Web) ===
+      const WEB_ID_KEY = 'smenapro_persistent_web_id';
+
+      const PlatformBridge = {
+        platform: 'web', // 'telegram' | 'max' | 'web'
+        sdk: null,
+        _backHandler: null,
+
+        init() {
+          try {
+            const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+            const max = window.WebApp ? window.WebApp : null;
+
+            if (tg && ((tg.initData && tg.initData.length > 0) || (tg.platform && tg.platform !== 'unknown'))) {
+              this.platform = 'telegram';
+              this.sdk = tg;
+            } else if (max && ((max.initData && max.initData.length > 0) || Boolean(max.platform))) {
+              this.platform = 'max';
+              this.sdk = max;
+            } else {
+              this.platform = 'web';
+              this.sdk = null;
+            }
+
+            if (this.sdk) {
+              if (typeof this.sdk.ready === 'function') this.sdk.ready();
+              if (typeof this.sdk.expand === 'function') this.sdk.expand();
+            }
+          } catch (err) {
+            console.warn('PlatformBridge init fallback:', err);
+            this.platform = 'web';
+            this.sdk = null;
+          }
+        },
+
+        getPlatformLabel() {
+          if (this.platform === 'telegram') return 'Telegram';
+          if (this.platform === 'max') return 'MAX';
+          return 'Web';
+        },
+
+        getPlatformPrefix() {
+          if (this.platform === 'telegram') return 'tg';
+          if (this.platform === 'max') return 'max';
+          return 'web';
+        },
+
+        getPlatformColorScheme() {
+          try {
+            if (this.sdk && this.sdk.colorScheme) {
+              return this.sdk.colorScheme === 'dark' ? 'dark' : 'light';
+            }
+            if (this.sdk && this.sdk.themeParams && this.sdk.themeParams.bg_color) {
+              const hex = this.sdk.themeParams.bg_color.replace('#', '');
+              if (hex.length === 6) {
+                const r = parseInt(hex.slice(0, 2), 16);
+                const g = parseInt(hex.slice(2, 4), 16);
+                const b = parseInt(hex.slice(4, 6), 16);
+                return (r * 0.299 + g * 0.587 + b * 0.114) < 128 ? 'dark' : 'light';
+              }
+            }
+          } catch (_) {}
+          return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        },
+
+        syncNativeChrome(isDark) {
+          try {
+            if (!this.sdk) return;
+            const headerHex = isDark ? '#111a2e' : '#ffffff';
+            const bgHex = isDark ? '#0b1120' : '#f3f5fa';
+            if (typeof this.sdk.setHeaderColor === 'function') this.sdk.setHeaderColor(headerHex);
+            if (typeof this.sdk.setBackgroundColor === 'function') this.sdk.setBackgroundColor(bgHex);
+          } catch (_) {}
+        },
+
+        getUser(fallbackName) {
+          try {
+            if (this.sdk && this.sdk.initDataUnsafe && this.sdk.initDataUnsafe.user) {
+              const u = this.sdk.initDataUnsafe.user;
+              const rawId = String(u.id || this._getWebId());
+              return {
+                id: rawId,
+                userKey: `${this.getPlatformPrefix()}_${rawId}`,
+                firstName: u.first_name || u.firstName || fallbackName || 'Сотрудник',
+                username: u.username || '',
+                platform: this.platform,
+                initData: this.sdk.initData || ''
+              };
+            }
+          } catch (_) {}
+          const webId = this._getWebId();
+          return {
+            id: webId,
+            userKey: `web_${webId}`,
+            firstName: fallbackName || 'Гость',
+            username: '',
+            platform: this.platform,
+            initData: ''
+          };
+        },
+
+        _getWebId() {
+          try {
+            let wid = localStorage.getItem(WEB_ID_KEY);
+            if (!wid) {
+              wid = Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+              localStorage.setItem(WEB_ID_KEY, wid);
+            }
+            return wid;
+          } catch (_) {
+            return 'local_user';
+          }
+        },
+
+        haptic(type = 'light') {
+          try {
+            const hf = this.sdk && this.sdk.HapticFeedback ? this.sdk.HapticFeedback : null;
+            if (!hf) return;
+            if (type === 'success' || type === 'warning' || type === 'error') {
+              if (typeof hf.notificationOccurred === 'function') hf.notificationOccurred(type);
+            } else if (type === 'selection') {
+              if (typeof hf.selectionChanged === 'function') hf.selectionChanged();
+            } else {
+              if (typeof hf.impactOccurred === 'function') hf.impactOccurred(type);
+            }
+          } catch (_) {}
+        },
+
+        backButton: {
+          show(cb) {
+            try {
+              const bb = PlatformBridge.sdk && PlatformBridge.sdk.BackButton ? PlatformBridge.sdk.BackButton : null;
+              if (!bb) return;
+              if (PlatformBridge._backHandler && typeof bb.offClick === 'function') {
+                bb.offClick(PlatformBridge._backHandler);
+              }
+              PlatformBridge._backHandler = cb;
+              if (typeof bb.onClick === 'function') bb.onClick(cb);
+              if (typeof bb.show === 'function') bb.show();
+            } catch (_) {}
+          },
+          hide() {
+            try {
+              const bb = PlatformBridge.sdk && PlatformBridge.sdk.BackButton ? PlatformBridge.sdk.BackButton : null;
+              if (!bb) return;
+              if (PlatformBridge._backHandler && typeof bb.offClick === 'function') {
+                bb.offClick(PlatformBridge._backHandler);
+                PlatformBridge._backHandler = null;
+              }
+              if (typeof bb.hide === 'function') bb.hide();
+            } catch (_) {}
+          }
+        },
+
+        getStartParam() {
+          try {
+            if (this.sdk && this.sdk.initDataUnsafe && this.sdk.initDataUnsafe.start_param) {
+              return String(this.sdk.initDataUnsafe.start_param);
+            }
+            const params = new URLSearchParams(window.location.search);
+            return params.get('startapp') || params.get('tgWebAppStartParam') || params.get('start_param') || '';
+          } catch (_) {
+            return '';
+          }
+        },
+
+        share(text, url) {
+          const fullText = url ? `${text}\n${url}` : text;
+          try {
+            if (this.platform === 'max' && this.sdk) {
+              if (typeof this.sdk.shareMaxContent === 'function') {
+                this.sdk.shareMaxContent({ text, link: url || '' });
+                return;
+              }
+              if (typeof this.sdk.shareContent === 'function') {
+                this.sdk.shareContent({ text, link: url || '' });
+                return;
+              }
+            }
+            if (this.platform === 'telegram' && this.sdk && typeof this.sdk.openTelegramLink === 'function') {
+              const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url || '')}&text=${encodeURIComponent(text)}`;
+              this.sdk.openTelegramLink(shareUrl);
+              return;
+            }
+            if (navigator.share) {
+              navigator.share({ title: 'СменаPro', text, url: url || undefined }).catch(() => {
+                copyTextSafely(fullText);
+                showToast('Ссылка и код скопированы в буфер обмена', 'success');
+              });
+              return;
+            }
+          } catch (err) {
+            console.warn('Share fallback:', err);
+          }
+          const ok = copyTextSafely(fullText);
+          showToast(ok ? 'Код и ссылка скопированы в буфер обмена!' : 'Не удалось скопировать текст', ok ? 'success' : 'error');
+        },
+
+        sendToBot(payloadObj) {
+          let delivered = false;
+          try {
+            const raw = JSON.stringify(payloadObj);
+            if (this.sdk && this.sdk.CloudStorage && typeof this.sdk.CloudStorage.setItem === 'function') {
+              this.sdk.CloudStorage.setItem('smenapro_cfg', raw);
+              delivered = true;
+            }
+            if (this.sdk && this.sdk.DeviceStorage && typeof this.sdk.DeviceStorage.setItem === 'function') {
+              this.sdk.DeviceStorage.setItem('smenapro_cfg', raw);
+              delivered = true;
+            }
+            if (this.sdk && typeof this.sdk.sendData === 'function' && this.sdk.initData && !(this.sdk.initDataUnsafe && this.sdk.initDataUnsafe.query_id)) {
+              this.sdk.sendData(raw);
+              delivered = true;
+            }
+          } catch (err) {
+            console.warn('sendToBot fallback:', err);
+          }
+          return delivered;
+        }
+      };
+
+      // === ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ CloudSync (Supabase REST API + Publishable Key Safe) ===
+      const CloudSync = {
+        status: 'local',       // 'local' | 'syncing' | 'synced' | 'error'
+        lastSyncTime: null,
+        lastDiagMessage: '',
+        lastDiagTone: 'off',   // 'ok' | 'warn' | 'err' | 'off'
+        _debounceTimer: null,
+
+        isConfigured() {
+          return Boolean(
+            APP_CONFIG.SUPABASE_URL &&
+            APP_CONFIG.SUPABASE_URL.trim().startsWith('http') &&
+            APP_CONFIG.SUPABASE_ANON_KEY &&
+            APP_CONFIG.SUPABASE_ANON_KEY.trim().length > 10
+          );
+        },
+
+        /**
+         * КРИТИЧЕСКИ ВАЖНО ДЛЯ НОВЫХ SUPABASE PUBLISHABLE KEYS (sb_publishable_...):
+         * Всегда отправляем apikey + Content-Type.
+         * Заголовок Authorization: Bearer отправляем ТОЛЬКО для legacy JWT-ключей (начинающихся с eyJ),
+         * чтобы PostgREST не возвращал ошибку 401 Invalid JWT.
+         */
+        _buildHeaders(extra = {}) {
+          const key = (APP_CONFIG.SUPABASE_ANON_KEY || '').trim();
+          const headers = {
+            'apikey': key,
+            'Content-Type': 'application/json',
+            ...extra
+          };
+          if (key.startsWith('eyJ')) {
+            headers['Authorization'] = 'Bearer ' + key;
+          }
+          return headers;
+        },
+
+        _tableEndpoint(query = '') {
+          const base = APP_CONFIG.SUPABASE_URL.trim().replace(/\/+$/, '');
+          const table = encodeURIComponent((APP_CONFIG.SUPABASE_TABLE_USERS || 'smena_users').trim());
+          return `${base}/rest/v1/${table}${query}`;
+        },
+
+        _formatHttpError(status, detailText = '') {
+          const tbl = APP_CONFIG.SUPABASE_TABLE_USERS || 'smena_users';
+          if (status === 404) {
+            return `Таблица ${tbl} не найдена (HTTP 404). Создайте таблицу в Supabase SQL Editor.`;
+          }
+          if (status === 401 || status === 403) {
+            return `Нет прав RLS или неверный ключ доступа (HTTP ${status}). Проверьте политики RLS для таблицы ${tbl}.`;
+          }
+          if (status === 400) {
+            const extra = detailText ? ` — ${detailText.slice(0, 90)}` : '';
+            return `Ошибка структуры запроса/колонок (HTTP 400)${extra}`;
+          }
+          return `Ошибка сервера Supabase (HTTP ${status})`;
+        },
+
+        schedulePush() {
+          if (!this.isConfigured()) {
+            this.status = 'local';
+            updateCloudBadge();
+            return;
+          }
+          clearTimeout(this._debounceTimer);
+          this._debounceTimer = setTimeout(() => {
+            this.pushState(false);
+          }, 850);
+        },
+
+        /**
+         * Живая проверка соединения с таблицей smena_users в Supabase
+         */
+        async testConnection() {
+          if (!this.isConfigured()) {
+            this.lastDiagMessage = 'Supabase не настроен в APP_CONFIG.';
+            this.lastDiagTone = 'off';
+            return { ok: false, message: this.lastDiagMessage };
+          }
+
+          this.status = 'syncing';
+          this.lastDiagMessage = 'Проверяем соединение с Supabase...';
+          this.lastDiagTone = 'warn';
+          updateCloudBadge();
+          if (ui.activeTab === 'settings') renderAll();
+
+          try {
+            const url = this._tableEndpoint('?select=user_key&limit=1');
+            const res = await fetch(url, {
+              method: 'GET',
+              headers: this._buildHeaders()
+            });
+
+            if (res.ok) {
+              const now = new Date();
+              const tStr = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+              this.status = 'synced';
+              this.lastSyncTime = tStr;
+              this.lastDiagMessage = `Подключено! Таблица ${APP_CONFIG.SUPABASE_TABLE_USERS} доступна (HTTP ${res.status}, ${tStr}).`;
+              this.lastDiagTone = 'ok';
+              updateCloudBadge();
+              return { ok: true, message: this.lastDiagMessage };
+            }
+
+            let detail = '';
+            try {
+              const errJson = await res.json();
+              detail = errJson.message || errJson.hint || '';
+            } catch (_) {}
+
+            const msg = this._formatHttpError(res.status, detail);
+            this.status = 'error';
+            this.lastDiagMessage = msg;
+            this.lastDiagTone = 'err';
+            updateCloudBadge();
+            return { ok: false, status: res.status, message: msg };
+          } catch (err) {
+            const msg = 'Нет соединения с сервером Supabase (проверьте интернет или CORS).';
+            this.status = 'error';
+            this.lastDiagMessage = msg;
+            this.lastDiagTone = 'err';
+            updateCloudBadge();
+            return { ok: false, message: msg };
+          }
+        },
+
+        /**
+         * Upsert состояния пользователя в Supabase (?on_conflict=user_key)
+         */
+        async pushState(showFeedback = false) {
+          if (!this.isConfigured()) {
+            this.status = 'local';
+            updateCloudBadge();
+            return { ok: false, reason: 'not_configured', message: 'Supabase не настроен' };
+          }
+
+          this.status = 'syncing';
+          updateCloudBadge();
+
+          try {
+            const user = PlatformBridge.getUser(state.profile.name);
+            const live = computeLiveStatus();
+            const nextShiftAt = live.next ? live.next.startDt.toISOString() : null;
+
+            const payload = {
+              user_key: user.userKey,
+              platform: user.platform,
+              platform_user_id: String(user.id),
+              display_name: state.profile.name || user.firstName,
+              sync_code: state.profile.syncCode,
+              timezone: state.notifications.timezone,
+              push_enabled: Boolean(state.notifications.enabled),
+              push_mode: state.notifications.mode,
+              push_time: state.notifications.eveTime || '19:00',
+              schedule_config: state.schedule,
+              overrides: state.overrides,
+              checklist: state.checklist,
+              next_shift_at: nextShiftAt,
+              updated_at: new Date().toISOString()
+            };
+
+            const endpoint = this._tableEndpoint('?on_conflict=user_key');
+            const res = await fetch(endpoint, {
+              method: 'POST',
+              headers: this._buildHeaders({
+                'Prefer': 'resolution=merge-duplicates,return=representation'
+              }),
+              body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+              let detail = '';
+              try {
+                const errJson = await res.json();
+                detail = errJson.message || errJson.details || '';
+              } catch (_) {}
+              const msg = this._formatHttpError(res.status, detail);
+              this.status = 'error';
+              this.lastDiagMessage = msg;
+              this.lastDiagTone = 'err';
+              updateCloudBadge();
+              if (showFeedback) showToast(msg, 'error');
+              return { ok: false, status: res.status, message: msg };
+            }
+
+            const now = new Date();
+            const tStr = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+            this.status = 'synced';
+            this.lastSyncTime = tStr;
+            this.lastDiagMessage = `Синхронизировано с Supabase (${tStr}) • user_key: ${user.userKey}`;
+            this.lastDiagTone = 'ok';
+            state.notifications.syncedAt = tStr;
+            saveLocalOnly();
+            updateCloudBadge();
+
+            if (showFeedback) showToast('Данные синхронизированы с Supabase!', 'success');
+            return { ok: true, message: this.lastDiagMessage };
+          } catch (err) {
+            const msg = 'Ошибка сети при отправке в Supabase (изменения сохранены локально).';
+            this.status = 'error';
+            this.lastDiagMessage = msg;
+            this.lastDiagTone = 'err';
+            updateCloudBadge();
+            if (showFeedback) showToast(msg, 'warning');
+            return { ok: false, message: msg };
+          }
+        },
+
+        /**
+         * Поиск графика партнёра в Supabase по короткому коду sync_code (например SM-4829)
+         */
+        async fetchPartnerByCode(syncCode) {
+          if (!this.isConfigured()) {
+            return { ok: false, reason: 'not_configured', message: 'Supabase не настроен' };
+          }
+          try {
+            const cleanCode = encodeURIComponent(syncCode.toUpperCase());
+            const url = this._tableEndpoint(`?sync_code=eq.${cleanCode}&select=display_name,platform,schedule_config,overrides&limit=1`);
+            const res = await fetch(url, {
+              method: 'GET',
+              headers: this._buildHeaders()
+            });
+
+            if (!res.ok) {
+              return { ok: false, reason: 'http_error', message: this._formatHttpError(res.status) };
+            }
+            const rows = await res.json();
+            if (!Array.isArray(rows) || rows.length === 0) {
+              return { ok: false, reason: 'not_found', message: `Код ${syncCode.toUpperCase()} не найден в базе.` };
+            }
+            return { ok: true, data: rows[0] };
+          } catch (err) {
+            return { ok: false, reason: 'network_error', message: 'Ошибка сети при загрузке графика партнёра.' };
+          }
+        }
+      };
+
+      // === СПРАВОЧНИКИ И КОНСТАНТЫ ===
+      const STORAGE_KEY = 'smenapro_multi_v2_state';
+      const CUR = APP_CONFIG.DEFAULT_CURRENCY || '₽';
+
+      const MONTHS_RU = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+      const MONTHS_GEN = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+      const MONTHS_SHORT = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+      const WEEKDAYS_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+      const WEEKDAYS_FULL = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+
+      const SHIFT_TYPES = {
+        full24:   { id: 'full24',   name: 'Сутки',      short: '24ч',  work: true,  defaultHours: 24, defaultStart: '08:00', colorVar: 'var(--c-full24-solid)' },
+        day:      { id: 'day',      name: 'День',       short: 'День', work: true,  defaultHours: 12, defaultStart: '08:00', colorVar: 'var(--c-day-solid)' },
+        night:    { id: 'night',    name: 'Ночь',       short: 'Ночь', work: true,  defaultHours: 12, defaultStart: '20:00', colorVar: 'var(--c-night-solid)' },
+        extra:    { id: 'extra',    name: 'Подработка', short: 'Доп',  work: true,  defaultHours: 12, defaultStart: '08:00', colorVar: 'var(--c-extra-solid)' },
+        vacation: { id: 'vacation', name: 'Отпуск',     short: 'Отп',  work: false, defaultHours: 0,  defaultStart: '00:00', colorVar: 'var(--c-vac-solid)' },
+        sick:     { id: 'sick',     name: 'Больничный', short: 'Бол',  work: false, defaultHours: 0,  defaultStart: '00:00', colorVar: 'var(--c-sick-solid)' },
+        off:      { id: 'off',      name: 'Выходной',   short: 'Вых',  work: false, defaultHours: 0,  defaultStart: '00:00', colorVar: 'var(--c-off-solid)' }
+      };
+
+      const PRESETS = {
+        '1/3':    { id: '1/3',    label: '1/3 (Сутки)', desc: '24ч работа, 3 выходных',       cycle: ['full24', 'off', 'off', 'off'], defaultHours: 24, defaultStart: '08:00' },
+        '2/2':    { id: '2/2',    label: '2/2',         desc: '2 дня по 12ч, 2 выходных',     cycle: ['day', 'day', 'off', 'off'],    defaultHours: 12, defaultStart: '08:00' },
+        '5/2':    { id: '5/2',    label: '5/2 (Пн–Пт)', desc: 'Будни по 8ч, Сб–Вс вых.',      cycle: null,                            defaultHours: 8,  defaultStart: '09:00' },
+        'rzd':    { id: 'rzd',    label: 'Ж/Д график',  desc: 'День / Ночь / Отсыпной / Вых', cycle: ['day', 'night', 'off', 'off'],  defaultHours: 12, defaultStart: '08:00' },
+        '3/3':    { id: '3/3',    label: '3/3',         desc: '3 дня по 12ч, 3 выходных',     cycle: ['day', 'day', 'day', 'off', 'off', 'off'], defaultHours: 12, defaultStart: '08:00' },
+        'custom': { id: 'custom', label: 'Свой цикл',   desc: 'Произвольная длина и порядок', cycle: ['day', 'night', 'off', 'off'],  defaultHours: 12, defaultStart: '08:00' }
+      };
+
+      const TIMEZONES = [
+        { id: 'Europe/Kaliningrad', label: 'Калининград (UTC+2)' },
+        { id: 'Europe/Moscow',      label: 'Москва / МСК (UTC+3)' },
+        { id: 'Europe/Samara',      label: 'Самара (UTC+4)' },
+        { id: 'Asia/Yekaterinburg', label: 'Екатеринбург (UTC+5)' },
+        { id: 'Asia/Omsk',          label: 'Омск (UTC+6)' },
+        { id: 'Asia/Krasnoyarsk',   label: 'Красноярск / НСК (UTC+7)' },
+        { id: 'Asia/Irkutsk',       label: 'Иркутск (UTC+8)' },
+        { id: 'Asia/Yakutsk',       label: 'Якутск (UTC+9)' },
+        { id: 'Asia/Vladivostok',   label: 'Владивосток (UTC+10)' },
+        { id: 'Asia/Magadan',       label: 'Магадан (UTC+11)' },
+        { id: 'Asia/Kamchatka',     label: 'Камчатка (UTC+12)' },
+        { id: 'Europe/Berlin',      label: 'Центр. Европа (UTC+1)' },
+        { id: 'UTC',                label: 'UTC (UTC+0)' }
+      ];
+
+      // === УТИЛИТЫ РАБОТЫ С ЛОКАЛЬНЫМИ ДАТАМИ (YYYY-MM-DD, БЕЗ БАГОВ TZ) ===
+      function pad2(n) { return String(n).padStart(2, '0'); }
+      function formatDateISO(y, m0, d) { return `${y}-${pad2(m0 + 1)}-${pad2(d)}`; }
+      function getTodayISO() {
+        const n = new Date();
+        return formatDateISO(n.getFullYear(), n.getMonth(), n.getDate());
+      }
+      function addDaysISO(dateStr, days) {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const dt = new Date(Date.UTC(y, m - 1, d + days));
+        return formatDateISO(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
+      }
+      function diffDays(a, b) {
+        const [ya, ma, da] = a.split('-').map(Number);
+        const [yb, mb, db] = b.split('-').map(Number);
+        return Math.round((Date.UTC(ya, ma - 1, da) - Date.UTC(yb, mb - 1, db)) / 86400000);
+      }
+      function getDaysInMonth(y, m0) { return new Date(Date.UTC(y, m0 + 1, 0)).getUTCDate(); }
+      function getDowMon0(y, m0, d) { return (new Date(Date.UTC(y, m0, d)).getUTCDay() + 6) % 7; }
+      function formatHumanDate(iso) {
+        const [y, m, d] = iso.split('-').map(Number);
+        const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+        return `${WEEKDAYS_FULL[dow]}, ${d} ${MONTHS_GEN[m - 1]} ${y}`;
+      }
+      function formatShortDate(iso) {
+        const [y, m, d] = iso.split('-').map(Number);
+        return `${d} ${MONTHS_GEN[m - 1]}`;
+      }
+      function formatMoney(v) {
+        return new Intl.NumberFormat('ru-RU').format(Math.round(v)) + ' ' + CUR;
+      }
+      function escapeHtml(s) {
+        return String(s || '')
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+      function computeEndTime(startTime, hours) {
+        const [hh, mm] = (startTime || '08:00').split(':').map(Number);
+        const startMin = (hh || 0) * 60 + (mm || 0);
+        const endMin = (startMin + Math.round((Number(hours) || 0) * 60)) % 1440;
+        const eh = Math.floor(((endMin + 1440) % 1440) / 60);
+        const em = (endMin + 1440) % 60;
+        return `${pad2(eh)}:${pad2(em)}`;
+      }
+      function computeHoursBetween(startTime, endTime) {
+        const [sh, sm] = (startTime || '08:00').split(':').map(Number);
+        const [eh, em] = (endTime || '20:00').split(':').map(Number);
+        let diff = (eh * 60 + em) - (sh * 60 + sm);
+        if (diff <= 0) diff += 1440;
+        return Math.round((diff / 60) * 10) / 10;
+      }
+
+      // === ГЕНЕРАЦИЯ И ДЕКОДИРОВАНИЕ КОДОВ СИНХРОНИЗАЦИИ (ОБЛАКО SM-XXXX + ОФЛАЙН SM1_) ===
+      function generateSyncCode() {
+        const digits = Math.floor(1000 + Math.random() * 9000);
+        return `SM-${digits}`;
+      }
+
+      function encodeOfflinePartnerCode(name, schedObj) {
+        try {
+          const compact = {
+            n: (name || 'Партнёр').slice(0, 18),
+            p: schedObj.preset || '1/3',
+            s: schedObj.startDate || getTodayISO()
+          };
+          if (schedObj.preset === 'custom' && Array.isArray(schedObj.customCycle)) {
+            compact.c = schedObj.customCycle.map(t => ({ full24: 'f', day: 'd', night: 'n', off: 'o' }[t] || 'o')).join('');
+          }
+          const json = JSON.stringify(compact);
+          const utf8 = unescape(encodeURIComponent(json));
+          const b64 = btoa(utf8).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+          return `SM1_${b64}`;
+        } catch (_) {
+          return '';
+        }
+      }
+
+      function decodeOfflinePartnerCode(rawCode) {
+        try {
+          let clean = String(rawCode || '').trim();
+          if (clean.startsWith('sync_')) clean = clean.slice(5);
+          if (clean.startsWith('SM1:')) clean = 'SM1_' + clean.slice(4);
+          if (!clean.startsWith('SM1_')) return null;
+
+          let b64 = clean.slice(4).replace(/-/g, '+').replace(/_/g, '/');
+          while (b64.length % 4) b64 += '=';
+          const json = decodeURIComponent(escape(atob(b64)));
+          const obj = JSON.parse(json);
+          if (!obj || !obj.p) return null;
+
+          const mapBack = { f: 'full24', d: 'day', n: 'night', o: 'off' };
+          const customCycle = typeof obj.c === 'string'
+            ? obj.c.split('').map(ch => mapBack[ch] || 'off')
+            : ['day', 'off'];
+
+          return {
+            name: String(obj.n || 'Партнёр').slice(0, 24),
+            preset: PRESETS[obj.p] ? obj.p : '1/3',
+            startDate: /^\d{4}-\d{2}-\d{2}$/.test(obj.s) ? obj.s : getTodayISO(),
+            customCycle,
+            overrides: {}
+          };
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function buildShareLinks() {
+        const myName = state.profile.name || PlatformBridge.getUser().firstName;
+        const offlineCode = encodeOfflinePartnerCode(myName, state.schedule);
+        const preferredCode = (CloudSync.isConfigured() && CloudSync.status === 'synced')
+          ? state.profile.syncCode
+          : offlineCode;
+        const startParam = `sync_${preferredCode}`;
+
+        let tgLink = '';
+        if (APP_CONFIG.TG_BOT_USERNAME) {
+          const bot = APP_CONFIG.TG_BOT_USERNAME.replace(/^@/, '');
+          tgLink = APP_CONFIG.TG_APP_SHORT_NAME
+            ? `https://t.me/${bot}/${APP_CONFIG.TG_APP_SHORT_NAME}?startapp=${startParam}`
+            : `https://t.me/${bot}?startapp=${startParam}`;
+        }
+
+        let maxLink = '';
+        if (APP_CONFIG.MAX_BOT_USERNAME) {
+          const mbot = APP_CONFIG.MAX_BOT_USERNAME.replace(/^@/, '');
+          maxLink = `https://max.ru/${mbot}?startapp=${startParam}`;
+        }
+
+        const baseWeb = window.location.origin && window.location.origin !== 'null'
+          ? `${window.location.origin}${window.location.pathname}?startapp=${startParam}`
+          : '';
+
+        return { preferredCode, offlineCode, cloudCode: state.profile.syncCode, startParam, tgLink, maxLink, webLink: baseWeb };
+      }
+
+      // === СОСТОЯНИЕ ПРИЛОЖЕНИЯ ===
+      function createDefaultState() {
+        const today = getTodayISO();
+        const tomorrow = addDaysISO(today, 1);
+        const sdkUser = PlatformBridge.getUser('Гость');
+
+        return {
+          themeMode: 'auto', // 'auto' | 'light' | 'dark'
+          profile: {
+            name: sdkUser.firstName || 'Гость',
+            syncCode: generateSyncCode()
+          },
+          schedule: {
+            preset: '1/3',
+            startDate: tomorrow, // По умолчанию старт завтра — сразу активен баннер «Завтра на смену!»
+            defaultStartTime: '08:00',
+            defaultNightStartTime: '20:00',
+            defaultHours: 24,
+            payType: 'shift', // 'hour' | 'shift' | 'salary'
+            payRate: 6800,
+            overtimeMultiplier: 1.5,
+            nightBonusPercent: 20,
+            customCycle: ['day', 'night', 'off', 'off']
+          },
+          partner: {
+            enabled: false,
+            mode: 'manual', // 'code' | 'manual'
+            name: 'Супруга',
+            code: '',
+            platform: '',
+            preset: '5/2',
+            startDate: today,
+            customCycle: ['day', 'day', 'off', 'off'],
+            overrides: {}
+          },
+          overrides: {},
+          notifications: {
+            enabled: true,
+            mode: '24h', // '24h' | '12h' | 'eve'
+            eveTime: '19:00',
+            timezone: APP_CONFIG.DEFAULT_TIMEZONE || 'Europe/Moscow',
+            syncedAt: null
+          },
+          checklist: [
+            { id: 'c1', text: 'Форма / сменная обувь', checked: false },
+            { id: 'c2', text: 'Пропуск и документы', checked: false },
+            { id: 'c3', text: 'Зарядка / пауэрбанк', checked: false },
+            { id: 'c4', text: 'Еда и вода', checked: false },
+            { id: 'c5', text: 'Проверить будильник', checked: false }
+          ]
+        };
+      }
+
+      function loadState() {
+        const def = createDefaultState();
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return def;
+          const p = JSON.parse(raw);
+          const merged = {
+            ...def,
+            ...p,
+            profile: { ...def.profile, ...(p.profile || {}) },
+            schedule: { ...def.schedule, ...(p.schedule || {}) },
+            partner: { ...def.partner, ...(p.partner || {}) },
+            notifications: { ...def.notifications, ...(p.notifications || {}) },
+            overrides: (p.overrides && typeof p.overrides === 'object') ? p.overrides : {},
+            checklist: Array.isArray(p.checklist) ? p.checklist : def.checklist
+          };
+          const sdkUser = PlatformBridge.getUser();
+          if (PlatformBridge.platform !== 'web' && sdkUser.firstName && merged.profile.name === 'Гость') {
+            merged.profile.name = sdkUser.firstName;
+          }
+          if (!merged.profile.syncCode) merged.profile.syncCode = generateSyncCode();
+          return merged;
+        } catch (_) {
+          return def;
+        }
+      }
+
+      let state = null;
+
+      function saveLocalOnly() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
+      }
+
+      function saveState() {
+        saveLocalOnly();
+        CloudSync.schedulePush();
+      }
+
+      const nowInit = new Date();
+      const ui = {
+        activeTab: 'calendar',
+        calendarMode: 'month',
+        viewYear: nowInit.getFullYear(),
+        viewMonth: nowInit.getMonth(),
+        statsScope: 'month',
+        statsMetric: 'income',
+        selectedChartMonth: nowInit.getMonth(),
+        payConfigOpen: false,
+        previewSkin: 'telegram',
+        editingDate: null,
+        showPartnerSheet: false,
+        partnerSheetTab: 'code',
+        showImportModal: false,
+        showResetModal: false
+      };
+
+      // === ДВИЖОК ГОДОВОГО ГРАФИКА И РАСЧЁТА ДОХОДА ===
+      function getBaseShiftType(dateStr, schedObj) {
+        const preset = schedObj.preset || '1/3';
+        if (preset === '5/2') {
+          const [y, m, d] = dateStr.split('-').map(Number);
+          const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+          return (dow === 0 || dow === 6) ? 'off' : 'day';
+        }
+        let cycle;
+        if (preset === 'custom') {
+          cycle = (Array.isArray(schedObj.customCycle) && schedObj.customCycle.length) ? schedObj.customCycle : ['day', 'off'];
+        } else {
+          cycle = (PRESETS[preset] && PRESETS[preset].cycle) ? PRESETS[preset].cycle : ['full24', 'off', 'off', 'off'];
+        }
+        const delta = diffDays(dateStr, schedObj.startDate || getTodayISO());
+        const len = cycle.length;
+        const idx = ((delta % len) + len) % len;
+        return SHIFT_TYPES[cycle[idx]] ? cycle[idx] : 'off';
+      }
+
+      function getStandardHours(type) {
+        const s = state.schedule;
+        if (!SHIFT_TYPES[type] || !SHIFT_TYPES[type].work) return 0;
+        if (type === 'full24') return s.preset === '1/3' ? (Number(s.defaultHours) || 24) : 24;
+        if (s.preset === '1/3') return 12;
+        return Number(s.defaultHours) || SHIFT_TYPES[type].defaultHours;
+      }
+
+      function getDayInfo(dateStr) {
+        const s = state.schedule;
+        const baseType = getBaseShiftType(dateStr, s);
+        const baseMeta = SHIFT_TYPES[baseType] || SHIFT_TYPES.off;
+        const baseStart = !baseMeta.work ? '00:00' : (baseType === 'night' ? (s.defaultNightStartTime || '20:00') : (s.defaultStartTime || baseMeta.defaultStart));
+        const baseHours = baseMeta.work ? getStandardHours(baseType) : 0;
+
+        const ov = state.overrides[dateStr];
+        if (!ov) {
+          return { date: dateStr, type: baseType, startTime: baseStart, hours: baseHours, bonus: 0, note: '', isOverride: false };
+        }
+        const type = SHIFT_TYPES[ov.type] ? ov.type : baseType;
+        const meta = SHIFT_TYPES[type];
+        return {
+          date: dateStr,
+          type,
+          startTime: ov.startTime || (type === 'night' ? (s.defaultNightStartTime || '20:00') : (s.defaultStartTime || '08:00')),
+          hours: meta.work ? (Number(ov.hours) >= 0 ? Number(ov.hours) : baseHours) : 0,
+          bonus: Number(ov.bonus) || 0,
+          note: ov.note || '',
+          isOverride: true
+        };
+      }
+
+      function getPartnerDayType(dateStr) {
+        if (!state.partner.enabled) return null;
+        if (state.partner.overrides && state.partner.overrides[dateStr] && state.partner.overrides[dateStr].type) {
+          return state.partner.overrides[dateStr].type;
+        }
+        return getBaseShiftType(dateStr, state.partner);
+      }
+
+      function isCommonDayOff(dateStr) {
+        if (!state.partner.enabled) return false;
+        const my = getDayInfo(dateStr);
+        const pt = getPartnerDayType(dateStr);
+        return (my.type === 'off' || my.type === 'vacation') && (pt === 'off' || pt === 'vacation');
+      }
+
+      function getMonthBaseWorkHours(year, month0) {
+        const days = getDaysInMonth(year, month0);
+        let h = 0;
+        for (let d = 1; d <= days; d++) {
+          const iso = formatDateISO(year, month0, d);
+          const t = getBaseShiftType(iso, state.schedule);
+          if (SHIFT_TYPES[t] && SHIFT_TYPES[t].work) h += getStandardHours(t);
+        }
+        return Math.max(1, h);
+      }
+
+      function calculateDayMetrics(dayInfo, monthNormHoursCache = null) {
+        const s = state.schedule;
+        const meta = SHIFT_TYPES[dayInfo.type] || SHIFT_TYPES.off;
+        const rate = Number(s.payRate) || 0;
+        const otMult = Number(s.overtimeMultiplier) || 1.5;
+        const nightPct = Number(s.nightBonusPercent) || 0;
+        const bonus = Number(dayInfo.bonus) || 0;
+
+        if (!meta.work || dayInfo.hours <= 0) {
+          return { pay: Math.round(bonus), overtimePay: 0, nightBonus: 0, bonus, hours: 0, overtimeHours: 0, isWork: false, isExtra: false };
+        }
+
+        const stdH = getStandardHours(dayInfo.type) || dayInfo.hours;
+        let hourlyEq = 0;
+        if (s.payType === 'hour') {
+          hourlyEq = rate;
+        } else if (s.payType === 'salary') {
+          const [y, m] = dayInfo.date.split('-').map(Number);
+          const normH = monthNormHoursCache || getMonthBaseWorkHours(y, m - 1);
+          hourlyEq = rate / normH;
+        } else {
+          hourlyEq = stdH > 0 ? rate / stdH : rate;
+        }
+
+        let basePay = 0, overtimePay = 0, overtimeHours = 0;
+        if (dayInfo.type === 'extra') {
+          overtimeHours = dayInfo.hours;
+          overtimePay = dayInfo.hours * hourlyEq * otMult;
+        } else {
+          const regH = Math.min(dayInfo.hours, stdH);
+          const extH = Math.max(0, dayInfo.hours - stdH);
+          basePay = regH * hourlyEq;
+          overtimeHours = extH;
+          overtimePay = extH * hourlyEq * otMult;
+        }
+
+        let nightBonus = 0;
+        if (nightPct > 0) {
+          if (dayInfo.type === 'night') nightBonus = (basePay + overtimePay) * (nightPct / 100);
+          else if (dayInfo.type === 'full24') nightBonus = (Math.min(8, dayInfo.hours) * hourlyEq) * (nightPct / 100);
+        }
+
+        return {
+          pay: Math.round(basePay + overtimePay + nightBonus + bonus),
+          overtimePay: Math.round(overtimePay),
+          nightBonus: Math.round(nightBonus),
+          bonus,
+          hours: dayInfo.hours,
+          overtimeHours,
+          isWork: true,
+          isExtra: dayInfo.type === 'extra'
+        };
+      }
+
+      function getMonthStats(year, month0) {
+        const days = getDaysInMonth(year, month0);
+        const todayStr = getTodayISO();
+        const normH = state.schedule.payType === 'salary' ? getMonthBaseWorkHours(year, month0) : null;
+        let shifts = 0, completedShifts = 0, extraShifts = 0;
+        let totalHours = 0, overtimeHours = 0, totalIncome = 0, overtimeAndBonuses = 0, commonDaysOff = 0;
+
+        for (let d = 1; d <= days; d++) {
+          const iso = formatDateISO(year, month0, d);
+          const info = getDayInfo(iso);
+          const m = calculateDayMetrics(info, normH);
+          if (isCommonDayOff(iso)) commonDaysOff++;
+          if (m.isWork) {
+            shifts++;
+            if (iso <= todayStr) completedShifts++;
+            if (m.isExtra) extraShifts++;
+            totalHours += m.hours;
+            overtimeHours += m.overtimeHours;
+          }
+          totalIncome += m.pay;
+          overtimeAndBonuses += (m.overtimePay + m.nightBonus + m.bonus);
+        }
+
+        return { shifts, completedShifts, extraShifts, totalHours, overtimeHours, totalIncome, overtimeAndBonuses, commonDaysOff };
+      }
+
+      function getYearStats(year) {
+        const months = [];
+        let shifts = 0, completedShifts = 0, extraShifts = 0;
+        let totalHours = 0, overtimeHours = 0, totalIncome = 0, overtimeAndBonuses = 0, commonDaysOff = 0;
+
+        for (let m = 0; m < 12; m++) {
+          const st = getMonthStats(year, m);
+          months.push(st);
+          shifts += st.shifts;
+          completedShifts += st.completedShifts;
+          extraShifts += st.extraShifts;
+          totalHours += st.totalHours;
+          overtimeHours += st.overtimeHours;
+          totalIncome += st.totalIncome;
+          overtimeAndBonuses += st.overtimeAndBonuses;
+          commonDaysOff += st.commonDaysOff;
+        }
+        return { months, shifts, completedShifts, extraShifts, totalHours, overtimeHours, totalIncome, overtimeAndBonuses, commonDaysOff };
+      }
+
+      function getShiftDateTime(iso, timeStr) {
+        const [y, m, d] = iso.split('-').map(Number);
+        const [hh, mm] = (timeStr || '08:00').split(':').map(Number);
+        return new Date(y, m - 1, d, hh || 0, mm || 0, 0, 0);
+      }
+
+      function computeLiveStatus() {
+        const now = new Date();
+        const todayStr = getTodayISO();
+        const yestStr = addDaysISO(todayStr, -1);
+
+        for (const checkStr of [yestStr, todayStr]) {
+          const info = getDayInfo(checkStr);
+          if (SHIFT_TYPES[info.type] && SHIFT_TYPES[info.type].work && info.hours > 0) {
+            const startDt = getShiftDateTime(checkStr, info.startTime);
+            const endDt = new Date(startDt.getTime() + info.hours * 3600000);
+            if (now >= startDt && now < endDt) {
+              const totalMs = endDt.getTime() - startDt.getTime();
+              const passedMs = now.getTime() - startDt.getTime();
+              return {
+                onShift: true,
+                current: info,
+                endDt,
+                remMs: endDt.getTime() - now.getTime(),
+                pct: Math.min(100, Math.max(2, Math.round((passedMs / totalMs) * 100))),
+                next: findNextShift(now, addDaysISO(checkStr, 1))
+              };
+            }
+          }
+        }
+        return { onShift: false, current: null, next: findNextShift(now, todayStr) };
+      }
+
+      function findNextShift(now, fromIso) {
+        const todayStr = getTodayISO();
+        const tomorrowStr = addDaysISO(todayStr, 1);
+        for (let i = 0; i <= 90; i++) {
+          const iso = addDaysISO(fromIso, i);
+          const info = getDayInfo(iso);
+          if (SHIFT_TYPES[info.type] && SHIFT_TYPES[info.type].work && info.hours > 0) {
+            const startDt = getShiftDateTime(iso, info.startTime);
+            if (startDt.getTime() > now.getTime()) {
+              const diffMs = startDt.getTime() - now.getTime();
+              const diffHours = diffMs / 3600000;
+              return {
+                info,
+                startDt,
+                diffMs,
+                diffHours,
+                isToday: iso === todayStr,
+                isTomorrow: iso === tomorrowStr,
+                showTomorrowCard: iso === tomorrowStr || (diffHours > 0 && diffHours <= 36)
+              };
+            }
+          }
+        }
+        return null;
+      }
+
+      function formatDuration(ms) {
+        const totalMin = Math.max(1, Math.floor(ms / 60000));
+        const d = Math.floor(totalMin / 1440);
+        const h = Math.floor((totalMin % 1440) / 60);
+        const m = totalMin % 60;
+        if (d > 0) return `${d} д. ${h} ч. ${m} м.`;
+        if (h > 0) return `${h} ч. ${m} м.`;
+        return `${m} мин.`;
+      }
+
+      function getNextPushTimeLabel(nextObj) {
+        if (!nextObj) return 'Нет ближайших смен';
+        const n = state.notifications;
+        let dt;
+        if (n.mode === '24h') dt = new Date(nextObj.startDt.getTime() - 24 * 3600000);
+        else if (n.mode === '12h') dt = new Date(nextObj.startDt.getTime() - 12 * 3600000);
+        else dt = getShiftDateTime(addDaysISO(nextObj.info.date, -1), n.eveTime || '19:00');
+
+        const iso = formatDateISO(dt.getFullYear(), dt.getMonth(), dt.getDate());
+        const todayStr = getTodayISO();
+        const tomorrowStr = addDaysISO(todayStr, 1);
+        const dayLbl = iso === todayStr ? 'Сегодня' : iso === tomorrowStr ? 'Завтра' : formatShortDate(iso);
+        return `${dayLbl} в ${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`;
+      }
+
+      // === УТИЛИТЫ UI ===
+      function applyTheme() {
+        let dark = false;
+        if (state.themeMode === 'dark') dark = true;
+        else if (state.themeMode === 'light') dark = false;
+        else dark = PlatformBridge.getPlatformColorScheme() === 'dark';
+
+        document.documentElement.classList.toggle('dark', dark);
+        PlatformBridge.syncNativeChrome(dark);
+      }
+
+      function showToast(msg, type = 'info') {
+        const stack = document.getElementById('toastStack');
+        if (!stack) return;
+        const el = document.createElement('div');
+        el.className = `toast ${type}`;
+        const ic = type === 'success' ? 'check' : type === 'error' ? 'x' : type === 'warning' ? 'bell' : 'info';
+        el.innerHTML = `${svgIcon(ic, 16)}<span>${escapeHtml(msg)}</span>`;
+        stack.appendChild(el);
+        setTimeout(() => {
+          el.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(-8px)';
+          setTimeout(() => el.remove(), 220);
+        }, 3200);
+      }
+
+      function copyTextSafely(text) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          const ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          return ok;
+        } catch (_) {
+          return false;
+        }
+      }
+
+      function downloadFile(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+      }
+
+      function updateCloudBadge() {
+        const dot = document.getElementById('cloudDot');
+        const lbl = document.getElementById('cloudLabel');
+        if (!dot || !lbl) return;
+        dot.className = 'cloud-dot';
+        if (CloudSync.status === 'synced') {
+          dot.classList.add('synced');
+          lbl.textContent = CloudSync.lastSyncTime ? `Supabase • ${CloudSync.lastSyncTime}` : 'Supabase OK';
+        } else if (CloudSync.status === 'syncing') {
+          dot.classList.add('syncing');
+          lbl.textContent = 'Синхр...';
+        } else if (CloudSync.status === 'error') {
+          dot.classList.add('error');
+          lbl.textContent = 'Нет связи с БД';
+        } else {
+          lbl.textContent = 'Локально';
+        }
+      }
+
+      // === РЕНДЕР ШАПКИ, БАННЕРА И НИЖНЕЙ НАВИГАЦИИ ===
+      function renderShellChrome() {
+        document.getElementById('brandLogo').innerHTML = svgIcon('calendarClock', 21);
+        document.getElementById('btnToday').innerHTML = `${svgIcon('crosshair', 15)}<span>Сегодня</span>`;
+
+        const pBadge = document.getElementById('platformBadge');
+        pBadge.className = `badge-platform ${PlatformBridge.platform}`;
+        pBadge.textContent = PlatformBridge.getPlatformLabel();
+
+        const user = PlatformBridge.getUser(state.profile.name);
+        const displayName = state.profile.name || user.firstName;
+        document.getElementById('headerGreeting').textContent = `Привет, ${displayName}!`;
+        updateCloudBadge();
+
+        const live = computeLiveStatus();
+        const statusBox = document.getElementById('liveStatusBox');
+        const bannerBox = document.getElementById('tomorrowBannerBox');
+
+        if (live.onShift) {
+          const m = SHIFT_TYPES[live.current.type];
+          const endStr = `${pad2(live.endDt.getHours())}:${pad2(live.endDt.getMinutes())}`;
+          statusBox.innerHTML = `
+            <div class="status-pill live">
+              <div class="status-left">
+                <span class="live-dot"></span>
+                <div style="min-width:0;flex:1;">
+                  <div class="status-main">Сейчас на смене • ${m.name}</div>
+                  <div class="status-sub">Осталось ${formatDuration(live.remMs)} (до ${endStr}) • ${live.pct}%</div>
+                  <div class="status-progress"><div style="width:${live.pct}%"></div></div>
+                </div>
+              </div>
+              <button type="button" class="mini-chip-btn" data-action="edit-day" data-date="${live.current.date}">Детали</button>
+            </div>
+          `;
+        } else if (live.next) {
+          const ns = live.next;
+          const m = SHIFT_TYPES[ns.info.type];
+          const dayWord = ns.isToday ? 'Сегодня' : ns.isTomorrow ? 'Завтра' : formatShortDate(ns.info.date);
+          statusBox.innerHTML = `
+            <div class="status-pill ${ns.diffHours <= 24 ? 'urgent' : ''}">
+              <div class="status-left">
+                <span style="width:10px;height:10px;border-radius:50%;background:${m.colorVar};flex-shrink:0;"></span>
+                <div style="min-width:0;flex:1;">
+                  <div class="status-main">До смены: ${formatDuration(ns.diffMs)}</div>
+                  <div class="status-sub">${dayWord} в ${ns.info.startTime} • ${m.name} (${ns.info.hours}ч)</div>
+                </div>
+              </div>
+              <button type="button" class="mini-chip-btn" data-action="edit-day" data-date="${ns.info.date}">Открыть</button>
+            </div>
+          `;
+        } else {
+          statusBox.innerHTML = `<div class="status-pill"><div class="status-sub">Ближайшие смены не запланированы</div></div>`;
+        }
+
+        const showTomorrow = !live.onShift && live.next && live.next.showTomorrowCard;
+        if (showTomorrow && ui.activeTab !== 'reminders') {
+          const ns = live.next;
+          const m = SHIFT_TYPES[ns.info.type];
+          const done = state.checklist.filter(i => i.checked).length;
+          const total = state.checklist.length;
+          bannerBox.className = 'tomorrow-wrap';
+          bannerBox.innerHTML = `
+            <button type="button" class="tomorrow-card" data-action="go-checklist">
+              <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+                <div class="tomorrow-icon">${svgIcon('backpack', 22)}</div>
+                <div style="min-width:0;">
+                  <div style="font-size:14.5px;font-weight:900;line-height:1.2;">${ns.isToday ? 'Сегодня' : 'Завтра'} на смену!</div>
+                  <div style="font-size:12px;opacity:.92;margin-top:2px;">${m.name} в ${ns.info.startTime} • собрано ${done}/${total}</div>
+                  <div style="font-size:11px;font-weight:800;margin-top:4px;text-decoration:underline;">Открыть чек-лист сборов</div>
+                </div>
+              </div>
+              <div style="flex-shrink:0;">${svgIcon('chevRight', 20)}</div>
+            </button>
+          `;
+        } else {
+          bannerBox.className = '';
+          bannerBox.innerHTML = '';
+        }
+
+        const tabs = [
+          { id: 'calendar', icon: 'calendar', label: 'Календарь' },
+          { id: 'stats', icon: 'chart', label: 'Доход' },
+          { id: 'reminders', icon: 'bell', label: 'Пуши', dot: showTomorrow },
+          { id: 'settings', icon: 'sliders', label: 'Настройки' }
+        ];
+        document.querySelectorAll('#tabBar .tab-btn').forEach((btn, idx) => {
+          const t = tabs[idx];
+          btn.dataset.tab = t.id;
+          btn.classList.toggle('active', ui.activeTab === t.id);
+          btn.innerHTML = `${t.dot ? '<span class="tab-badge-dot"></span>' : ''}${svgIcon(t.icon, 20)}<span>${t.label}</span>`;
+        });
+      }
+
+      // === ВКЛАДКА 1: КАЛЕНДАРЬ ===
+      function renderCalendarTab() {
+        const isMonth = ui.calendarMode === 'month';
+        const mStats = getMonthStats(ui.viewYear, ui.viewMonth);
+        const p = state.partner;
+
+        let html = `
+          <!-- Бар совместных выходных TG <-> MAX -->
+          <div class="partner-bar ${p.enabled ? 'active' : ''}">
+            <div style="display:flex;align-items:center;gap:9px;min-width:0;flex:1;">
+              <div style="width:34px;height:34px;border-radius:11px;background:var(--emerald-soft);color:var(--emerald);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                ${svgIcon('heart', 17)}
+              </div>
+              <div style="min-width:0;">
+                <div style="font-size:12.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                  Совместные выходные ${p.enabled ? `(${escapeHtml(p.name)})` : ''}
+                </div>
+                <div class="xs muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                  ${p.enabled ? `В ${MONTHS_RU[ui.viewMonth]}: ${mStats.commonDaysOff} общ. вых. • TG ↔ MAX` : 'Подключите график партнёра из TG или MAX'}
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+              <button type="button" class="mini-chip-btn" data-action="open-partner-sheet">${p.enabled ? 'Настр.' : 'Подключить'}</button>
+              <button type="button" class="switch green ${p.enabled ? 'on' : ''}" data-action="toggle-partner" aria-label="Включить график партнёра"></button>
+            </div>
+          </div>
+
+          <!-- Переключатель Месяц / Год -->
+          <div class="card">
+            <div class="segmented">
+              <button type="button" class="segmented-btn ${isMonth ? 'active' : ''}" data-action="cal-mode" data-mode="month">Месяц</button>
+              <button type="button" class="segmented-btn ${!isMonth ? 'active' : ''}" data-action="cal-mode" data-mode="year">Год (${ui.viewYear})</button>
+            </div>
+
+            <div class="period-nav">
+              <button type="button" class="icon-btn" data-action="cal-prev">${svgIcon('chevLeft', 18)}</button>
+              <div>
+                <div class="period-title">${isMonth ? `${MONTHS_RU[ui.viewMonth]} ${ui.viewYear}` : `${ui.viewYear} год`}</div>
+                <div class="period-sub">${isMonth ? `${mStats.shifts} см. • ${mStats.totalHours} ч • ${formatMoney(mStats.totalIncome)}` : 'Нажмите на месяц для перехода'}</div>
+              </div>
+              <button type="button" class="icon-btn" data-action="cal-next">${svgIcon('chevRight', 18)}</button>
+            </div>
+          </div>
+        `;
+
+        html += isMonth ? renderMonthGrid() : renderYearGrid();
+
+        html += `
+          <div class="card">
+            <div class="legend-wrap">
+              ${['full24', 'day', 'night', 'extra', 'vacation', 'sick'].map(id => {
+                const m = SHIFT_TYPES[id];
+                return `<span class="legend-chip"><span class="legend-dot" style="background:${m.colorVar}"></span>${m.name}</span>`;
+              }).join('')}
+              <span class="legend-chip"><span class="legend-dot" style="background:#f97316"></span>Правка</span>
+              ${p.enabled ? `<span class="legend-chip" style="color:var(--emerald);background:var(--emerald-soft);">${svgIcon('heart', 11)}Общий вых.</span>` : ''}
+            </div>
+          </div>
+        `;
+
+        return html;
+      }
+
+      function renderMonthGrid() {
+        const y = ui.viewYear, m0 = ui.viewMonth;
+        const days = getDaysInMonth(y, m0);
+        const first = getDowMon0(y, m0, 1);
+        const todayStr = getTodayISO();
+
+        let cells = '';
+        for (let i = 0; i < first; i++) cells += `<div></div>`;
+
+        for (let d = 1; d <= days; d++) {
+          const iso = formatDateISO(y, m0, d);
+          const info = getDayInfo(iso);
+          const meta = SHIFT_TYPES[info.type] || SHIFT_TYPES.off;
+          const isToday = iso === todayStr;
+          const commonOff = isCommonDayOff(iso);
+          const tag = meta.work ? `${info.hours}ч` : meta.short;
+
+          cells += `
+            <button type="button" class="day-cell type-${info.type} ${isToday ? 'is-today' : ''} ${commonOff ? 'common-off' : ''}" data-action="edit-day" data-date="${iso}">
+              ${info.isOverride ? '<span class="dot-override" title="Изменено вручную"></span>' : ''}
+              ${info.note ? '<span class="dot-note" title="Есть заметка"></span>' : ''}
+              <span class="day-num">${d}</span>
+              <span class="day-tag">${tag}</span>
+              <span class="day-dots">
+                ${commonOff ? `<span class="heart-mini">${svgIcon('heart', 9)}</span>` : ''}
+                ${Number(info.bonus) !== 0 ? `<span style="width:5px;height:5px;border-radius:50%;background:${info.bonus > 0 ? '#f59e0b' : '#f43f5e'};"></span>` : ''}
+              </span>
+            </button>
+          `;
+        }
+
+        return `
+          <div class="card" style="padding:11px;">
+            <div class="weekdays-row">
+              ${WEEKDAYS_SHORT.map((w, i) => `<div class="weekday-cell ${i >= 5 ? 'weekend' : ''}">${w}</div>`).join('')}
+            </div>
+            <div class="month-grid">${cells}</div>
+          </div>
+        `;
+      }
+
+      function renderYearGrid() {
+        const y = ui.viewYear;
+        const todayStr = getTodayISO();
+        let html = '<div class="year-grid">';
+        for (let m0 = 0; m0 < 12; m0++) {
+          const days = getDaysInMonth(y, m0);
+          const first = getDowMon0(y, m0, 1);
+          const st = getMonthStats(y, m0);
+          const isCur = y === nowInit.getFullYear() && m0 === nowInit.getMonth();
+
+          let dots = '';
+          for (let i = 0; i < first; i++) dots += '<div></div>';
+          for (let d = 1; d <= days; d++) {
+            const iso = formatDateISO(y, m0, d);
+            const info = getDayInfo(iso);
+            const commonOff = isCommonDayOff(iso);
+            dots += `<div class="mini-dot type-${info.type} ${info.type === 'off' && commonOff ? 'common-off' : ''} ${iso === todayStr ? 'is-today' : ''}"></div>`;
+          }
+
+          html += `
+            <button type="button" class="year-month-card ${isCur ? 'current' : ''}" data-action="open-month" data-month="${m0}">
+              <div class="row-between">
+                <strong style="font-size:13px;">${MONTHS_RU[m0]}</strong>
+                <span class="xs muted" style="font-weight:700;">${st.shifts} см</span>
+              </div>
+              <div class="mini-days-grid">${dots}</div>
+            </button>
+          `;
+        }
+        return html + '</div>';
+      }
+
+      // === ВКЛАДКА 2: ДОХОД И СТАТИСТИКА ===
+      function renderStatsTab() {
+        const isMonth = ui.statsScope === 'month';
+        const yStats = getYearStats(ui.viewYear);
+        const cur = isMonth ? yStats.months[ui.viewMonth] : yStats;
+        const pct = cur.shifts > 0 ? Math.min(100, Math.round((cur.completedShifts / cur.shifts) * 100)) : 0;
+
+        const isIncomeMetric = ui.statsMetric === 'income';
+        const vals = yStats.months.map(m => isIncomeMetric ? m.totalIncome : m.totalHours);
+        const maxV = Math.max(1, ...vals);
+        const selM = ui.selectedChartMonth;
+        const selSt = yStats.months[selM];
+        const s = state.schedule;
+        const payModeLabel = s.payType === 'hour' ? `${s.payRate} ${CUR}/ч` : s.payType === 'salary' ? `Оклад ${formatMoney(s.payRate)}` : `${s.payRate} ${CUR}/см`;
+
+        return `
+          <div class="card">
+            <div class="segmented">
+              <button type="button" class="segmented-btn ${isMonth ? 'active' : ''}" data-action="stats-scope" data-scope="month">Месяц</button>
+              <button type="button" class="segmented-btn ${!isMonth ? 'active' : ''}" data-action="stats-scope" data-scope="year">Весь ${ui.viewYear} год</button>
+            </div>
+            <div class="period-nav">
+              <button type="button" class="icon-btn" data-action="stats-prev">${svgIcon('chevLeft', 18)}</button>
+              <div class="period-title">${isMonth ? `${MONTHS_RU[ui.viewMonth]} ${ui.viewYear}` : `${ui.viewYear} год`}</div>
+              <button type="button" class="icon-btn" data-action="stats-next">${svgIcon('chevRight', 18)}</button>
+            </div>
+          </div>
+
+          <div class="hero-income">
+            <div class="row-between">
+              <span style="font-size:12px;opacity:.85;font-weight:600;">Прогноз дохода</span>
+              <span style="font-size:11px;font-weight:800;padding:4px 9px;border-radius:9px;background:rgba(255,255,255,.18);">${payModeLabel}</span>
+            </div>
+            <div class="hero-amount">${formatMoney(cur.totalIncome)}</div>
+            <div style="margin-top:14px;">
+              <div class="row-between" style="font-size:11.5px;font-weight:700;opacity:.92;">
+                <span>Отработано смен: ${cur.completedShifts} из ${cur.shifts}</span>
+                <span>${pct}%</span>
+              </div>
+              <div class="hero-progress-bar"><div style="width:${pct}%"></div></div>
+            </div>
+          </div>
+
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="xs muted" style="font-weight:700;display:flex;align-items:center;gap:5px;">${svgIcon('clock', 14)}Смен и часов</div>
+              <div class="kpi-val">${cur.shifts} см • ${cur.totalHours}ч</div>
+              <div class="xs muted" style="margin-top:2px;">Подработок: ${cur.extraShifts}</div>
+            </div>
+            <div class="kpi-card">
+              <div class="xs muted" style="font-weight:700;display:flex;align-items:center;gap:5px;color:#d97706;">${svgIcon('zap', 14)}Переработки / доп.</div>
+              <div class="kpi-val">${formatMoney(cur.overtimeAndBonuses)}</div>
+              <div class="xs muted" style="margin-top:2px;">Сверх нормы: ${cur.overtimeHours} ч</div>
+            </div>
+            <div class="kpi-card">
+              <div class="xs muted" style="font-weight:700;display:flex;align-items:center;gap:5px;color:var(--emerald);">${svgIcon('heart', 14)}Совместных вых.</div>
+              <div class="kpi-val">${state.partner.enabled ? cur.commonDaysOff : '—'}</div>
+              <div class="xs muted" style="margin-top:2px;">${state.partner.enabled ? escapeHtml(state.partner.name) : 'Партнёр не включён'}</div>
+            </div>
+            <div class="kpi-card">
+              <div class="xs muted" style="font-weight:700;display:flex;align-items:center;gap:5px;color:var(--accent-text);">${svgIcon('wallet', 14)}Средняя смена</div>
+              <div class="kpi-val">${cur.shifts > 0 ? formatMoney(cur.totalIncome / cur.shifts) : '0 ' + CUR}</div>
+              <div class="xs muted" style="margin-top:2px;">Ночные +${s.nightBonusPercent}%</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="row-between" style="margin-bottom:6px;">
+              <div>
+                <h2 class="card-title">По месяцам (${ui.viewYear})</h2>
+                <div class="xs muted" style="margin-top:3px;">
+                  ${MONTHS_RU[selM]}: <strong style="color:var(--text);">${formatMoney(selSt.totalIncome)}</strong> • ${selSt.totalHours}ч (${selSt.shifts} см)
+                </div>
+              </div>
+              <div class="segmented" style="width:94px;">
+                <button type="button" class="segmented-btn ${isIncomeMetric ? 'active' : ''}" data-action="chart-metric" data-metric="income" style="min-height:30px;">${CUR}</button>
+                <button type="button" class="segmented-btn ${!isIncomeMetric ? 'active' : ''}" data-action="chart-metric" data-metric="hours" style="min-height:30px;">ч</button>
+              </div>
+            </div>
+            <div class="chart-bars">
+              ${vals.map((v, idx) => {
+                const h = Math.max(8, Math.round((v / maxV) * 100));
+                const sel = idx === selM;
+                return `
+                  <button type="button" class="chart-col" data-action="chart-month" data-month="${idx}">
+                    <div class="chart-bar ${sel ? 'selected' : ''}" style="height:${h}%"></div>
+                    <span class="chart-lbl ${sel ? 'selected' : ''}">${MONTHS_SHORT[idx]}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="card">
+            <button type="button" class="row-between" style="width:100%;" data-action="toggle-pay-config">
+              <span class="card-title">${svgIcon('wallet', 17)}Настройки расчёта оплаты</span>
+              <span style="transform:${ui.payConfigOpen ? 'rotate(180deg)' : 'none'};transition:transform .2s;">${svgIcon('chevDown', 18)}</span>
+            </button>
+            ${ui.payConfigOpen ? `
+              <div class="stack-12" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+                <div>
+                  <label class="field-label">Режим оплаты</label>
+                  <div class="segmented cols-3">
+                    <button type="button" class="segmented-btn ${s.payType === 'hour' ? 'active' : ''}" data-action="pay-type" data-type="hour">Почасовая</button>
+                    <button type="button" class="segmented-btn ${s.payType === 'shift' ? 'active' : ''}" data-action="pay-type" data-type="shift">За смену</button>
+                    <button type="button" class="segmented-btn ${s.payType === 'salary' ? 'active' : ''}" data-action="pay-type" data-type="salary">Оклад</button>
+                  </div>
+                </div>
+                <div>
+                  <label class="field-label">${s.payType === 'hour' ? 'Ставка за час' : s.payType === 'salary' ? 'Оклад за месяц' : 'Оплата за смену'} (${CUR})</label>
+                  <input id="inpPayRate" type="number" min="0" step="50" class="input" value="${s.payRate}" />
+                </div>
+                <div>
+                  <label class="field-label">Коэффициент переработки и подработок: ×${s.overtimeMultiplier}</label>
+                  <div class="grid-4">
+                    ${[1, 1.5, 2, 2.5].map(v => `<button type="button" class="chip-choice ${Number(s.overtimeMultiplier) === v ? 'active' : ''}" data-action="set-ot" data-val="${v}">×${v}</button>`).join('')}
+                  </div>
+                </div>
+                <div>
+                  <label class="field-label">Доплата за ночные часы: +${s.nightBonusPercent}%</label>
+                  <div class="grid-4">
+                    ${[0, 20, 35, 40].map(v => `<button type="button" class="chip-choice ${Number(s.nightBonusPercent) === v ? 'active' : ''}" data-action="set-night-pct" data-val="${v}">+${v}%</button>`).join('')}
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      // === ВКЛАДКА 3: ПУШИ ЗА 24Ч И ЧЕК-ЛИСТ СБОРОВ ===
+      function renderRemindersTab() {
+        const n = state.notifications;
+        const live = computeLiveStatus();
+        const nextShiftObj = live.next;
+        const previewShift = nextShiftObj ? nextShiftObj.info : getDayInfo(addDaysISO(getTodayISO(), 1));
+        const previewMeta = SHIFT_TYPES[previewShift.type] || SHIFT_TYPES.full24;
+        const done = state.checklist.filter(i => i.checked).length;
+        const total = state.checklist.length;
+        const isMaxSkin = ui.previewSkin === 'max';
+
+        return `
+          <div class="card stack-12">
+            <div class="row-between">
+              <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                <div style="width:40px;height:40px;border-radius:14px;background:var(--accent-soft);color:var(--accent-text);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  ${svgIcon('bell', 20)}
+                </div>
+                <div style="min-width:0;">
+                  <div style="font-size:14px;font-weight:800;">Напоминать перед сменой</div>
+                  <div class="xs muted">Пуш в ${PlatformBridge.getPlatformLabel()} за сутки до выхода</div>
+                </div>
+              </div>
+              <button type="button" class="switch ${n.enabled ? 'on' : ''}" data-action="toggle-push" aria-label="Включить напоминания"></button>
+            </div>
+
+            <div class="stack-12" style="${n.enabled ? '' : 'opacity:0.45;pointer-events:none;'}">
+              <div>
+                <label class="field-label">Момент отправки пуша</label>
+                <div class="grid-3">
+                  <button type="button" class="chip-choice ${n.mode === '24h' ? 'active' : ''}" data-action="push-mode" data-mode="24h">За 24ч</button>
+                  <button type="button" class="chip-choice ${n.mode === '12h' ? 'active' : ''}" data-action="push-mode" data-mode="12h">За 12ч</button>
+                  <button type="button" class="chip-choice ${n.mode === 'eve' ? 'active' : ''}" data-action="push-mode" data-mode="eve">Накануне</button>
+                </div>
+              </div>
+
+              ${n.mode === 'eve' ? `
+                <div class="row-between" style="background:var(--surface-2);padding:10px 12px;border-radius:14px;">
+                  <span class="small" style="font-weight:700;">Время накануне</span>
+                  <input id="inpEveTime" type="time" class="input" style="width:120px;min-height:38px;" value="${escapeHtml(n.eveTime || '19:00')}" />
+                </div>
+              ` : ''}
+
+              <div>
+                <label class="field-label">Часовой пояс</label>
+                <select id="selTimezone" class="input">
+                  ${TIMEZONES.map(tz => `<option value="${tz.id}" ${n.timezone === tz.id ? 'selected' : ''}>${tz.label}</option>`).join('')}
+                </select>
+              </div>
+
+              <div style="padding:10px 12px;border-radius:13px;background:var(--accent-soft);color:var(--accent-text);font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px;">
+                ${svgIcon('clock', 16)}
+                <span>Ближайший пуш: ${escapeHtml(getNextPushTimeLabel(nextShiftObj))}</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="checklistAnchor" class="card stack-12">
+            <div class="row-between">
+              <div>
+                <h2 class="card-title">${svgIcon('backpack', 17)}Чек-лист сборов</h2>
+                <div class="xs muted" style="margin-top:2px;">Готово ${done} из ${total}</div>
+              </div>
+              <button type="button" class="mini-chip-btn" data-action="reset-checks">Сбросить</button>
+            </div>
+
+            <div class="stack-8">
+              ${state.checklist.map(item => `
+                <div class="check-item ${item.checked ? 'done' : ''}">
+                  <button type="button" class="check-btn" data-action="toggle-check" data-id="${item.id}">
+                    <span class="check-box">${item.checked ? svgIcon('check', 14) : ''}</span>
+                    <span class="check-text">${escapeHtml(item.text)}</span>
+                  </button>
+                  <button type="button" class="icon-btn" style="min-width:34px;height:34px;background:transparent;color:var(--text-3);" data-action="del-check" data-id="${item.id}" title="Удалить">
+                    ${svgIcon('trash', 15)}
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+
+            <form id="formAddCheck" style="display:flex;gap:8px;">
+              <input id="inpNewCheck" type="text" maxlength="60" class="input" placeholder="Добавить пункт (напр. Термос)..." />
+              <button type="submit" class="btn btn-primary" style="width:48px;flex-shrink:0;padding:0;">${svgIcon('plus', 20)}</button>
+            </form>
+          </div>
+
+          <div class="card stack-12">
+            <div class="row-between">
+              <h2 class="card-title">Предпросмотр пуша</h2>
+              <div class="segmented" style="width:154px;">
+                <button type="button" class="segmented-btn ${!isMaxSkin ? 'active' : ''}" data-action="preview-skin" data-skin="telegram" style="min-height:30px;font-size:11.5px;">Telegram</button>
+                <button type="button" class="segmented-btn ${isMaxSkin ? 'active' : ''}" data-action="preview-skin" data-skin="max" style="min-height:30px;font-size:11.5px;">MAX</button>
+              </div>
+            </div>
+
+            <div class="preview-shell ${isMaxSkin ? 'skin-max' : 'skin-telegram'}">
+              <div class="preview-head">
+                <div class="preview-avatar">${isMaxSkin ? 'MX' : 'SP'}</div>
+                <div>
+                  <div style="font-size:13px;font-weight:800;">СменаPro Бот</div>
+                  <div class="xs" style="color:${isMaxSkin ? '#7c3aed' : '#0284c7'};font-weight:600;">${isMaxSkin ? 'Бот MAX • Уведомление' : 'бот • напоминание'}</div>
+                </div>
+              </div>
+              <div class="preview-bubble">
+                <div style="font-weight:800;font-size:13.5px;margin-bottom:6px;color:var(--accent-text);">⏰ Завтра на смену! Пора собираться</div>
+                <div>📅 <strong>${formatHumanDate(previewShift.date)}</strong></div>
+                <div>🕒 ${previewMeta.name}: ${previewShift.startTime}–${computeEndTime(previewShift.startTime, previewShift.hours)} (${previewShift.hours} ч)</div>
+                ${previewShift.note ? `<div style="margin-top:3px;">📝 ${escapeHtml(previewShift.note)}</div>` : ''}
+                <div style="margin-top:9px;padding-top:8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px;">
+                  <div class="xs" style="font-weight:800;">🎒 Не забудьте (можно отмечать):</div>
+                  ${state.checklist.map(item => `
+                    <button type="button" data-action="toggle-check" data-id="${item.id}" style="text-align:left;padding:5px 8px;border-radius:9px;background:var(--surface-2);font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;${item.checked ? 'opacity:.55;text-decoration:line-through;' : ''}">
+                      <span>${item.checked ? '✅' : '⬜'}</span>
+                      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(item.text)}</span>
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+              <button type="button" class="preview-inline-btn" data-action="go-calendar">Открыть график в СменаPro</button>
+            </div>
+
+            <div class="stack-8">
+              <button type="button" class="btn btn-primary" data-action="sync-bot">
+                ${svgIcon('send', 17)}Сохранить и синхронизировать с Supabase
+              </button>
+              <button type="button" class="btn btn-secondary" data-action="test-push">
+                ${svgIcon('bell', 17)}Отправить тестовый пуш
+              </button>
+              <div class="xs muted" style="text-align:center;">
+                ${n.syncedAt ? `Последняя синхронизация: ${escapeHtml(n.syncedAt)}` : 'Нажмите выше, чтобы записать настройки пушей в Supabase'}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // === ВКЛАДКА 4: НАСТРОЙКИ, ЭКСПОРТ И ДИАГНОСТИКА SUPABASE ===
+      function renderSettingsTab() {
+        const s = state.schedule;
+        const user = PlatformBridge.getUser(state.profile.name);
+        const sbConfigured = CloudSync.isConfigured();
+        const sbTagClass = !sbConfigured ? 'off' : CloudSync.status === 'synced' ? 'ok' : CloudSync.status === 'error' ? 'err' : 'warn';
+        const sbTagText = !sbConfigured ? 'Не задан' : CloudSync.status === 'synced' ? 'Подключено' : CloudSync.status === 'error' ? 'Ошибка / нет таблицы' : 'Настроен (ожидает)';
+
+        return `
+          <!-- Профиль -->
+          <div class="card stack-12">
+            <h2 class="card-title">${svgIcon('users', 17)}Профиль и синхронизация</h2>
+            <div>
+              <label class="field-label">Ваше имя</label>
+              <input id="inpProfileName" type="text" maxlength="28" class="input" value="${escapeHtml(state.profile.name)}" />
+            </div>
+            <div class="grid-2">
+              <div style="background:var(--surface-2);padding:10px;border-radius:13px;">
+                <div class="xs muted">Ключ в БД (user_key)</div>
+                <div style="font-size:12px;font-weight:800;margin-top:2px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(user.userKey)}</div>
+              </div>
+              <button type="button" data-action="copy-my-code" style="background:var(--accent-soft);color:var(--accent-text);padding:10px;border-radius:13px;text-align:left;">
+                <div class="xs" style="opacity:.8;">Мой sync-код (коп.)</div>
+                <div style="font-size:13px;font-weight:900;margin-top:2px;display:flex;align-items:center;justify-content:space-between;">
+                  <span>${escapeHtml(state.profile.syncCode)}</span>
+                  ${svgIcon('copy', 14)}
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Базовый график -->
+          <div class="card stack-12">
+            <h2 class="card-title">${svgIcon('calendar', 17)}Базовый график на год</h2>
+            <div class="grid-2">
+              ${Object.values(PRESETS).map(pr => `
+                <button type="button" data-action="set-preset" data-preset="${pr.id}"
+                  style="text-align:left;padding:11px;border-radius:15px;border:1.5px solid ${s.preset === pr.id ? 'var(--accent)' : 'var(--border)'};background:${s.preset === pr.id ? 'var(--accent-soft)' : 'var(--surface-2)'};">
+                  <div style="font-size:13px;font-weight:800;">${pr.label}</div>
+                  <div class="xs muted" style="margin-top:2px;line-height:1.25;">${pr.desc}</div>
+                </button>
+              `).join('')}
+            </div>
+
+            ${s.preset === 'custom' ? `
+              <div style="background:var(--surface-2);padding:12px;border-radius:16px;" class="stack-8">
+                <div class="row-between">
+                  <strong class="small">Ваш цикл (${s.customCycle.length} дн.)</strong>
+                  <button type="button" class="xs" style="color:var(--rose);font-weight:700;" data-action="clear-cycle">Сбросить</button>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                  ${s.customCycle.map((st, idx) => `
+                    <button type="button" data-action="del-cycle-step" data-idx="${idx}"
+                      style="display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border-radius:10px;background:var(--surface);border:1px solid var(--border);font-size:11.5px;font-weight:700;">
+                      <span style="width:7px;height:7px;border-radius:50%;background:${SHIFT_TYPES[st].colorVar};"></span>
+                      <span>${idx + 1}. ${SHIFT_TYPES[st].short}</span>
+                      ${svgIcon('x', 12)}
+                    </button>
+                  `).join('')}
+                </div>
+                <div class="grid-4" style="margin-top:4px;">
+                  <button type="button" class="btn btn-sm" style="background:var(--c-day-solid);color:#fff;" data-action="add-cycle-step" data-type="day">+День</button>
+                  <button type="button" class="btn btn-sm" style="background:var(--c-night-solid);color:#fff;" data-action="add-cycle-step" data-type="night">+Ночь</button>
+                  <button type="button" class="btn btn-sm" style="background:var(--c-full24-solid);color:#fff;" data-action="add-cycle-step" data-type="full24">+24ч</button>
+                  <button type="button" class="btn btn-sm btn-secondary" style="background:var(--surface);" data-action="add-cycle-step" data-type="off">+Вых</button>
+                </div>
+              </div>
+            ` : ''}
+
+            <div class="grid-2">
+              ${s.preset !== '5/2' ? `
+                <div style="grid-column:span 2;">
+                  <label class="field-label">Дата старта (1-й день цикла)</label>
+                  <input id="inpStartDate" type="date" class="input" value="${escapeHtml(s.startDate)}" />
+                </div>
+              ` : ''}
+              <div>
+                <label class="field-label">Начало смены</label>
+                <input id="inpStartTime" type="time" class="input" value="${escapeHtml(s.defaultStartTime)}" />
+              </div>
+              <div>
+                <label class="field-label">Часов в смене</label>
+                <input id="inpDefHours" type="number" min="1" max="24" step="0.5" class="input" value="${s.defaultHours}" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Оформление -->
+          <div class="card stack-8">
+            <h2 class="card-title">${svgIcon('sun', 17)}Оформление</h2>
+            <div class="segmented cols-3">
+              <button type="button" class="segmented-btn ${state.themeMode === 'auto' ? 'active' : ''}" data-action="set-theme" data-mode="auto">Авто</button>
+              <button type="button" class="segmented-btn ${state.themeMode === 'light' ? 'active' : ''}" data-action="set-theme" data-mode="light">Светлая</button>
+              <button type="button" class="segmented-btn ${state.themeMode === 'dark' ? 'active' : ''}" data-action="set-theme" data-mode="dark">Тёмная</button>
+            </div>
+          </div>
+
+          <!-- Экспорт и бэкап -->
+          <div class="card stack-8">
+            <h2 class="card-title">${svgIcon('download', 17)}Экспорт и резервная копия</h2>
+            <button type="button" class="btn btn-primary" data-action="export-ics">
+              ${svgIcon('calendar', 17)}Выгрузить ${ui.viewYear} год в .ics (с пушем за 24ч)
+            </button>
+            <div class="grid-2">
+              <button type="button" class="btn btn-secondary btn-sm" data-action="export-json">${svgIcon('download', 15)}Экспорт JSON</button>
+              <button type="button" class="btn btn-secondary btn-sm" data-action="open-import">${svgIcon('upload', 15)}Импорт JSON</button>
+            </div>
+            <button type="button" class="btn btn-danger-soft btn-sm" data-action="open-reset">${svgIcon('refresh', 15)}Сбросить все данные</button>
+          </div>
+
+          <!-- Диагностика интеграции APP_CONFIG + Живой тест Supabase -->
+          <div class="card stack-12">
+            <h2 class="card-title">${svgIcon('shield', 17)}Диагностика интеграции (${APP_CONFIG.APP_VERSION})</h2>
+
+            <div>
+              <div class="diag-row">
+                <span>Среда запуска</span>
+                <span class="status-tag ok">${PlatformBridge.getPlatformLabel()} ${PlatformBridge.sdk ? '(SDK активен)' : '(браузер)'}</span>
+              </div>
+              <div class="diag-row">
+                <span>Supabase (${escapeHtml(APP_CONFIG.SUPABASE_TABLE_USERS)})</span>
+                <span class="status-tag ${sbTagClass}">${sbTagText}</span>
+              </div>
+              <div class="diag-row">
+                <span>Тип ключа API</span>
+                <span class="status-tag ok">${APP_CONFIG.SUPABASE_ANON_KEY.startsWith('sb_publishable_') ? 'Publishable (без Bearer)' : 'Legacy JWT'}</span>
+              </div>
+              <div class="diag-row">
+                <span>Telegram-бот</span>
+                <span class="status-tag ${APP_CONFIG.TG_BOT_USERNAME ? 'ok' : 'off'}">${APP_CONFIG.TG_BOT_USERNAME ? '@' + escapeHtml(APP_CONFIG.TG_BOT_USERNAME.replace(/^@/, '')) : 'Ещё не задан'}</span>
+              </div>
+              <div class="diag-row">
+                <span>MAX-бот</span>
+                <span class="status-tag ${APP_CONFIG.MAX_BOT_USERNAME ? 'ok' : 'off'}">${APP_CONFIG.MAX_BOT_USERNAME ? '@' + escapeHtml(APP_CONFIG.MAX_BOT_USERNAME.replace(/^@/, '')) : 'Ещё не задан'}</span>
+              </div>
+              <div class="diag-row">
+                <span>Вебхук пушей</span>
+                <span class="status-tag ${APP_CONFIG.PUSH_WEBHOOK_URL ? 'ok' : 'off'}">${APP_CONFIG.PUSH_WEBHOOK_URL ? 'Подключён' : 'Ещё не задан'}</span>
+              </div>
+            </div>
+
+            ${CloudSync.lastDiagMessage ? `
+              <div class="diag-result-box ${CloudSync.lastDiagTone}">
+                ${escapeHtml(CloudSync.lastDiagMessage)}
+              </div>
+            ` : ''}
+
+            <div class="grid-2">
+              <button type="button" class="btn btn-secondary btn-sm" data-action="diag-test-sb">
+                ${svgIcon('cloud', 15)}Проверить связь
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" data-action="diag-sync-now">
+                ${svgIcon('refresh', 15)}Синхронизировать
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      // === МОДАЛЬНЫЕ ОКНА И ШТОРКИ ===
+      function closeAllModals() {
+        ui.editingDate = null;
+        ui.showPartnerSheet = false;
+        ui.showImportModal = false;
+        ui.showResetModal = false;
+        PlatformBridge.backButton.hide();
+        renderModals();
+      }
+
+      function renderModals() {
+        const root = document.getElementById('modalRoot');
+        if (!root) return;
+
+        const hasModal = Boolean(ui.editingDate || ui.showPartnerSheet || ui.showImportModal || ui.showResetModal);
+        if (hasModal) {
+          PlatformBridge.backButton.show(() => {
+            PlatformBridge.haptic('light');
+            closeAllModals();
+          });
+        } else {
+          PlatformBridge.backButton.hide();
+          root.innerHTML = '';
+          return;
+        }
+
+        if (ui.editingDate) root.innerHTML = renderDayEditorSheet(ui.editingDate);
+        else if (ui.showPartnerSheet) root.innerHTML = renderPartnerSheet();
+        else if (ui.showImportModal) root.innerHTML = renderImportModal();
+        else if (ui.showResetModal) root.innerHTML = renderResetModal();
+
+        bindModalInputs();
+      }
+
+      function renderDayEditorSheet(dateStr) {
+        const info = getDayInfo(dateStr);
+        const m = calculateDayMetrics(info);
+        const isWork = SHIFT_TYPES[info.type].work;
+        const endT = computeEndTime(info.startTime, info.hours);
+
+        return `
+          <div class="modal-backdrop" data-action="close-modal">
+            <div class="sheet" onclick="event.stopPropagation()">
+              <div class="sheet-handle"></div>
+              <div class="row-between" style="margin-bottom:12px;">
+                <div>
+                  <div style="font-size:15.5px;font-weight:900;">${formatHumanDate(dateStr)}</div>
+                  <div class="xs muted" style="margin-top:2px;">${info.isOverride ? 'Изменено вручную' : 'По базовому графику'}</div>
+                </div>
+                <button type="button" class="icon-btn" style="min-width:36px;height:36px;" data-action="close-modal">${svgIcon('x', 17)}</button>
+              </div>
+
+              <form id="dayEditForm" data-date="${dateStr}" class="stack-12">
+                <div>
+                  <label class="field-label">Тип дня</label>
+                  <div class="grid-3">
+                    ${Object.values(SHIFT_TYPES).map(t => `
+                      <button type="button" class="chip-choice sheet-type-btn ${info.type === t.id ? 'active' : ''}" data-type="${t.id}" style="display:flex;align-items:center;justify-content:center;gap:5px;">
+                        <span style="width:7px;height:7px;border-radius:50%;background:${info.type === t.id ? '#fff' : t.colorVar};"></span>
+                        <span>${t.name}</span>
+                      </button>
+                    `).join('')}
+                  </div>
+                  <input type="hidden" id="shType" value="${info.type}" />
+                </div>
+
+                <div id="shWorkBox" class="grid-3" style="${isWork ? '' : 'display:none;'}">
+                  <div>
+                    <label class="field-label">Начало</label>
+                    <input id="shStart" type="time" class="input" value="${escapeHtml(info.startTime || '08:00')}" />
+                  </div>
+                  <div>
+                    <label class="field-label">Конец</label>
+                    <input id="shEnd" type="time" class="input" value="${escapeHtml(endT)}" />
+                  </div>
+                  <div>
+                    <label class="field-label">Часы</label>
+                    <input id="shHours" type="number" min="0" max="24" step="0.5" class="input" value="${info.hours}" />
+                  </div>
+                </div>
+
+                <div>
+                  <div class="row-between" style="margin-bottom:6px;">
+                    <label class="field-label" style="margin:0;">Премия / штраф (${CUR})</label>
+                    <span id="shPayPreview" class="xs" style="font-weight:800;color:var(--accent-text);">Итого: ${formatMoney(m.pay)}</span>
+                  </div>
+                  <div style="display:flex;gap:6px;">
+                    <input id="shBonus" type="number" step="100" class="input" value="${info.bonus}" />
+                    <button type="button" class="chip-choice" style="padding:0 10px;color:var(--rose);" data-action="bonus-add" data-delta="-500">-500</button>
+                    <button type="button" class="chip-choice" style="padding:0 10px;color:var(--emerald);" data-action="bonus-add" data-delta="1000">+1000</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="field-label">Заметка</label>
+                  <textarea id="shNote" class="input" maxlength="200" placeholder="Например: сменщик Иван, взять пропуск...">${escapeHtml(info.note)}</textarea>
+                </div>
+
+                <div class="stack-8">
+                  <button type="submit" class="btn btn-primary">Сохранить день</button>
+                  ${info.isOverride ? `<button type="button" class="btn btn-secondary btn-sm" data-action="reset-day" data-date="${dateStr}">Сбросить к базовому графику</button>` : ''}
+                </div>
+              </form>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderPartnerSheet() {
+        const p = state.partner;
+        const isCodeTab = ui.partnerSheetTab === 'code';
+        const links = buildShareLinks();
+
+        return `
+          <div class="modal-backdrop" data-action="close-modal">
+            <div class="sheet" onclick="event.stopPropagation()">
+              <div class="sheet-handle"></div>
+              <div class="row-between" style="margin-bottom:12px;">
+                <div>
+                  <div style="font-size:15.5px;font-weight:900;">Совместные выходные (TG ↔ MAX)</div>
+                  <div class="xs muted">Облачный код Supabase или офлайн-код SM1_</div>
+                </div>
+                <button type="button" class="icon-btn" style="min-width:36px;height:36px;" data-action="close-modal">${svgIcon('x', 17)}</button>
+              </div>
+
+              <div class="segmented" style="margin-bottom:14px;">
+                <button type="button" class="segmented-btn ${isCodeTab ? 'active' : ''}" data-action="partner-tab" data-tab="code">По коду / ссылке</button>
+                <button type="button" class="segmented-btn ${!isCodeTab ? 'active' : ''}" data-action="partner-tab" data-tab="manual">Вручную</button>
+              </div>
+
+              ${isCodeTab ? `
+                <div class="stack-12">
+                  <div style="background:var(--surface-2);padding:12px;border-radius:16px;" class="stack-8">
+                    <div class="row-between">
+                      <span class="xs muted" style="font-weight:700;">Ваш облачный код (Supabase)</span>
+                      <span class="status-tag ${CloudSync.status === 'synced' ? 'ok' : 'warn'}">${CloudSync.status === 'synced' ? 'Активен в БД' : 'Синхронизируйте'}</span>
+                    </div>
+                    <div style="font-family:monospace;font-size:14px;font-weight:900;background:var(--surface);padding:9px 10px;border-radius:11px;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+                      <span>${escapeHtml(links.cloudCode)}</span>
+                      <button type="button" class="mini-chip-btn" data-action="copy-share-code" data-code="${escapeHtml(links.cloudCode)}">Коп.</button>
+                    </div>
+                    <div class="xs muted">Офлайн-код (работает даже без БД):</div>
+                    <div style="font-family:monospace;font-size:11px;font-weight:700;word-break:break-all;background:var(--surface);padding:7px 9px;border-radius:10px;border:1px solid var(--border);">
+                      ${escapeHtml(links.offlineCode)}
+                    </div>
+                    <div class="grid-2">
+                      <button type="button" class="btn btn-secondary btn-sm" data-action="copy-share-code" data-code="${escapeHtml(links.offlineCode)}">${svgIcon('copy', 15)}Коп. офлайн</button>
+                      <button type="button" class="btn btn-primary btn-sm" data-action="share-partner-link">${svgIcon('share', 15)}Поделиться</button>
+                    </div>
+                  </div>
+
+                  <div class="stack-8">
+                    <label class="field-label">Вставьте код партнёра (SM-XXXX или SM1_...)</label>
+                    <input id="inpPartnerCode" type="text" class="input" placeholder="Например: SM-4829 или SM1_ey..." value="${escapeHtml(p.code || '')}" />
+                    <button type="button" class="btn btn-emerald" data-action="connect-partner-code">
+                      ${svgIcon('link', 17)}Подключить график партнёра
+                    </button>
+                  </div>
+                </div>
+              ` : `
+                <div class="stack-12">
+                  <div>
+                    <label class="field-label">Имя партнёра / напарника</label>
+                    <input id="inpPartnerName" type="text" maxlength="24" class="input" value="${escapeHtml(p.name)}" placeholder="Супруга / Супруг" />
+                  </div>
+                  <div class="grid-2">
+                    <div>
+                      <label class="field-label">График</label>
+                      <select id="selPartnerPreset" class="input">
+                        ${Object.values(PRESETS).filter(x => x.id !== 'custom').map(pr => `<option value="${pr.id}" ${p.preset === pr.id ? 'selected' : ''}>${pr.label}</option>`).join('')}
+                      </select>
+                    </div>
+                    <div>
+                      <label class="field-label">Дата старта</label>
+                      <input id="inpPartnerStart" type="date" class="input" value="${escapeHtml(p.startDate)}" />
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-emerald" data-action="save-partner-manual">Сохранить и включить</button>
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderImportModal() {
+        return `
+          <div class="modal-backdrop center" data-action="close-modal">
+            <div class="modal-dialog stack-12" onclick="event.stopPropagation()">
+              <div class="row-between">
+                <strong style="font-size:15px;">Импорт бэкапа JSON</strong>
+                <button type="button" class="icon-btn" style="min-width:34px;height:34px;" data-action="close-modal">${svgIcon('x', 16)}</button>
+              </div>
+              <label class="btn btn-secondary btn-sm" style="border:1.5px dashed var(--accent);color:var(--accent-text);">
+                Выбрать файл .json
+                <input id="fileImportJson" type="file" accept=".json,application/json" style="display:none;" />
+              </label>
+              <textarea id="txtImportJson" class="input" rows="4" placeholder='{"schedule": {...}}'></textarea>
+              <div class="grid-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-action="copy-json-now">Копировать тек.</button>
+                <button type="button" class="btn btn-primary btn-sm" data-action="apply-import">Восстановить</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderResetModal() {
+        return `
+          <div class="modal-backdrop center" data-action="close-modal">
+            <div class="modal-dialog stack-12" style="text-align:center;" onclick="event.stopPropagation()">
+              <div style="width:48px;height:48px;border-radius:16px;background:var(--rose-soft);color:var(--rose);display:flex;align-items:center;justify-content:center;margin:0 auto;">
+                ${svgIcon('refresh', 22)}
+              </div>
+              <strong style="font-size:16px;">Сбросить все данные?</strong>
+              <div class="small muted">Все ручные правки дней, чек-лист и настройки вернутся к базовому графику 1/3.</div>
+              <div class="grid-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-action="close-modal">Отмена</button>
+                <button type="button" class="btn btn-danger-soft btn-sm" data-action="confirm-reset">Сбросить</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // === ПРИВЯЗКА ИНПУТОВ ===
+      function bindTabInputs() {
+        const payInp = document.getElementById('inpPayRate');
+        if (payInp) {
+          payInp.onchange = (e) => {
+            state.schedule.payRate = Math.max(0, Number(e.target.value) || 0);
+            saveState();
+            renderAll();
+          };
+        }
+        const eveInp = document.getElementById('inpEveTime');
+        if (eveInp) {
+          eveInp.onchange = (e) => { state.notifications.eveTime = e.target.value || '19:00'; saveState(); renderAll(); };
+        }
+        const tzSel = document.getElementById('selTimezone');
+        if (tzSel) {
+          tzSel.onchange = (e) => { state.notifications.timezone = e.target.value; saveState(); PlatformBridge.haptic('selection'); };
+        }
+        const formAdd = document.getElementById('formAddCheck');
+        if (formAdd) {
+          formAdd.onsubmit = (e) => {
+            e.preventDefault();
+            const v = (document.getElementById('inpNewCheck').value || '').trim();
+            if (!v) return;
+            state.checklist.push({ id: 'c_' + Date.now(), text: v, checked: false });
+            saveState();
+            PlatformBridge.haptic('light');
+            renderAll();
+          };
+        }
+        const profName = document.getElementById('inpProfileName');
+        if (profName) {
+          profName.onchange = (e) => {
+            state.profile.name = (e.target.value || 'Гость').trim();
+            saveState();
+            renderShellChrome();
+            showToast('Имя обновлено', 'success');
+          };
+        }
+        const sDate = document.getElementById('inpStartDate');
+        if (sDate) {
+          sDate.onchange = (e) => { if (!e.target.value) return; state.schedule.startDate = e.target.value; saveState(); renderShellChrome(); showToast('Дата старта обновлена', 'success'); };
+        }
+        const sTime = document.getElementById('inpStartTime');
+        if (sTime) {
+          sTime.onchange = (e) => { state.schedule.defaultStartTime = e.target.value || '08:00'; saveState(); renderShellChrome(); };
+        }
+        const sHours = document.getElementById('inpDefHours');
+        if (sHours) {
+          sHours.onchange = (e) => { state.schedule.defaultHours = Math.min(24, Math.max(1, Number(e.target.value) || 12)); saveState(); renderShellChrome(); };
+        }
+      }
+
+      function bindModalInputs() {
+        const form = document.getElementById('dayEditForm');
+        if (form) {
+          const updatePreview = () => {
+            const type = document.getElementById('shType').value;
+            const hours = Number(document.getElementById('shHours').value) || 0;
+            const bonus = Number(document.getElementById('shBonus').value) || 0;
+            const m = calculateDayMetrics({ date: form.dataset.date, type, hours, bonus });
+            const el = document.getElementById('shPayPreview');
+            if (el) el.textContent = `Итого: ${formatMoney(m.pay)}`;
+          };
+
+          form.querySelectorAll('.sheet-type-btn').forEach(btn => {
+            btn.onclick = () => {
+              const t = btn.dataset.type;
+              document.getElementById('shType').value = t;
+              form.querySelectorAll('.sheet-type-btn').forEach(b => {
+                const act = b.dataset.type === t;
+                b.classList.toggle('active', act);
+                const dot = b.querySelector('span:first-child');
+                if (dot) dot.style.background = act ? '#fff' : SHIFT_TYPES[b.dataset.type].colorVar;
+              });
+              const work = SHIFT_TYPES[t].work;
+              document.getElementById('shWorkBox').style.display = work ? 'grid' : 'none';
+              if (work) {
+                const h = getStandardHours(t);
+                const st = t === 'night' ? (state.schedule.defaultNightStartTime || '20:00') : (state.schedule.defaultStartTime || '08:00');
+                document.getElementById('shHours').value = h;
+                document.getElementById('shStart').value = st;
+                document.getElementById('shEnd').value = computeEndTime(st, h);
+              }
+              PlatformBridge.haptic('selection');
+              updatePreview();
+            };
+          });
+
+          const shStart = document.getElementById('shStart');
+          const shEnd = document.getElementById('shEnd');
+          const shHours = document.getElementById('shHours');
+          const shBonus = document.getElementById('shBonus');
+
+          shStart.onchange = () => { shEnd.value = computeEndTime(shStart.value, shHours.value); };
+          shHours.oninput = () => { shEnd.value = computeEndTime(shStart.value, shHours.value); updatePreview(); };
+          shEnd.onchange = () => { shHours.value = computeHoursBetween(shStart.value, shEnd.value); updatePreview(); };
+          shBonus.oninput = updatePreview;
+
+          form.onsubmit = (e) => {
+            e.preventDefault();
+            const dStr = form.dataset.date;
+            const type = document.getElementById('shType').value;
+            const isWork = SHIFT_TYPES[type].work;
+            state.overrides[dStr] = {
+              type,
+              startTime: shStart.value || '08:00',
+              hours: isWork ? Math.min(24, Math.max(0, Number(shHours.value) || 0)) : 0,
+              bonus: Number(shBonus.value) || 0,
+              note: (document.getElementById('shNote').value || '').trim()
+            };
+            saveState();
+            PlatformBridge.haptic('success');
+            closeAllModals();
+            renderAll();
+            showToast(`Изменения на ${formatShortDate(dStr)} сохранены`, 'success');
+          };
+        }
+
+        const fileInp = document.getElementById('fileImportJson');
+        if (fileInp) {
+          fileInp.onchange = (e) => {
+            const f = e.target.files && e.target.files[0];
+            if (!f) return;
+            const r = new FileReader();
+            r.onload = () => { document.getElementById('txtImportJson').value = r.result || ''; };
+            r.readAsText(f);
+          };
+        }
+      }
+
+      // === ЭКСПОРТ .ICS (ВЕСЬ ГОД + VALARM ЗА 24Ч) ===
+      function exportYearICS() {
+        try {
+          const y = ui.viewYear;
+          const alarmMin = state.notifications.mode === '12h' ? 720 : 1440;
+          const checklistLines = state.checklist.map(c => `- ${c.text}`).join('\\n');
+          const out = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//SmenaPro//MultiPlatform//RU',
+            'CALSCALE:GREGORIAN',
+            `X-WR-CALNAME:СменаPro ${y}`
+          ];
+
+          for (let m0 = 0; m0 < 12; m0++) {
+            const days = getDaysInMonth(y, m0);
+            for (let d = 1; d <= days; d++) {
+              const iso = formatDateISO(y, m0, d);
+              const info = getDayInfo(iso);
+              const meta = SHIFT_TYPES[info.type];
+              if (!meta || !meta.work || info.hours <= 0) continue;
+
+              const st = getShiftDateTime(iso, info.startTime);
+              const en = new Date(st.getTime() + info.hours * 3600000);
+              const fmt = dt => `${dt.getFullYear()}${pad2(dt.getMonth() + 1)}${pad2(dt.getDate())}T${pad2(dt.getHours())}${pad2(dt.getMinutes())}00`;
+              const desc = [`Смена: ${meta.name} (${info.hours}ч)`];
+              if (info.note) desc.push(`Заметка: ${info.note.replace(/\n/g, ' ')}`);
+              if (checklistLines) desc.push(`Чек-лист:\\n${checklistLines}`);
+
+              out.push(
+                'BEGIN:VEVENT',
+                `UID:smenapro-${iso}@smenapro`,
+                `DTSTART:${fmt(st)}`,
+                `DTEND:${fmt(en)}`,
+                `SUMMARY:Смена: ${meta.name} (${info.hours}ч)`,
+                `DESCRIPTION:${desc.join('\\n')}`,
+                'BEGIN:VALARM',
+                `TRIGGER:-PT${alarmMin}M`,
+                'ACTION:DISPLAY',
+                'DESCRIPTION:Завтра на смену! Проверьте чек-лист сборов.',
+                'END:VALARM',
+                'END:VEVENT'
+              );
+            }
+          }
+          out.push('END:VCALENDAR');
+          downloadFile(new Blob([out.join('\r\n')], { type: 'text/calendar;charset=utf-8' }), `SmenaPro_${y}.ics`);
+          PlatformBridge.haptic('success');
+          showToast(`Календарь SmenaPro_${y}.ics выгружен!`, 'success');
+        } catch (_) {
+          showToast('Ошибка при создании .ics файла', 'error');
+        }
+      }
+
+      // === ПОДКЛЮЧЕНИЕ ПАРТНЁРА ПО КОДУ (ОБЛАКО SUPABASE ИЛИ ОФЛАЙН SM1_) ===
+      async function connectPartnerByCode(rawInput, silentIfFail = false) {
+        const clean = String(rawInput || '').trim();
+        if (!clean) {
+          if (!silentIfFail) showToast('Введите код партнёра', 'warning');
+          return;
+        }
+
+        // 1. Офлайн-код SM1_...
+        const offline = decodeOfflinePartnerCode(clean);
+        if (offline) {
+          state.partner = {
+            enabled: true,
+            mode: 'code',
+            name: offline.name,
+            code: clean.replace(/^sync_/, ''),
+            platform: 'TG↔MAX',
+            preset: offline.preset,
+            startDate: offline.startDate,
+            customCycle: offline.customCycle,
+            overrides: {}
+          };
+          saveState();
+          PlatformBridge.haptic('success');
+          closeAllModals();
+          renderAll();
+          showToast(`График «${offline.name}» подключён! Общие выходные подсвечены`, 'success');
+          return;
+        }
+
+        // 2. Облачный код SM-XXXX в Supabase
+        const cloudCode = clean.replace(/^sync_/, '').toUpperCase();
+        if (/^SM-\d{4,}$/.test(cloudCode)) {
+          if (!CloudSync.isConfigured()) {
+            if (!silentIfFail) showToast('Supabase не настроен. Используйте офлайн-код SM1_...', 'warning');
+            return;
+          }
+          showToast('Ищем график партнёра в Supabase...', 'info');
+          const res = await CloudSync.fetchPartnerByCode(cloudCode);
+          if (res.ok && res.data && res.data.schedule_config) {
+            const sc = res.data.schedule_config;
+            state.partner = {
+              enabled: true,
+              mode: 'code',
+              name: res.data.display_name || 'Партнёр',
+              code: cloudCode,
+              platform: res.data.platform || '',
+              preset: sc.preset || '1/3',
+              startDate: sc.startDate || getTodayISO(),
+              customCycle: sc.customCycle || ['day', 'off'],
+              overrides: res.data.overrides || {}
+            };
+            saveState();
+            PlatformBridge.haptic('success');
+            closeAllModals();
+            renderAll();
+            showToast(`Подключён облачный график: ${state.partner.name}!`, 'success');
+            return;
+          }
+          if (!silentIfFail) showToast(res.message || 'Не удалось найти код в базе', 'error');
+          return;
+        }
+
+        if (!silentIfFail) showToast('Неверный формат кода (нужен SM-XXXX или SM1_...)', 'error');
+      }
+
+      // === ТЕСТОВЫЙ ПУШ И СИНХРОНИЗАЦИЯ ===
+      async function handleTestPush() {
+        PlatformBridge.haptic('medium');
+        const user = PlatformBridge.getUser(state.profile.name);
+        const live = computeLiveStatus();
+        const nextInfo = live.next ? live.next.info : getDayInfo(addDaysISO(getTodayISO(), 1));
+
+        if (APP_CONFIG.PUSH_WEBHOOK_URL && APP_CONFIG.PUSH_WEBHOOK_URL.trim().startsWith('http')) {
+          try {
+            showToast('Отправляем тестовый пуш...', 'info');
+            const res = await fetch(APP_CONFIG.PUSH_WEBHOOK_URL.trim(), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                user_key: user.userKey,
+                platform: user.platform,
+                platform_user_id: user.id,
+                display_name: state.profile.name,
+                next_shift: nextInfo,
+                checklist: state.checklist
+              })
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            PlatformBridge.haptic('success');
+            showToast(`Тестовый пуш отправлен в ${PlatformBridge.getPlatformLabel()}!`, 'success');
+          } catch (_) {
+            PlatformBridge.haptic('error');
+            showToast('Вебхук пуша не ответил — проверьте PUSH_WEBHOOK_URL', 'error');
+          }
+        } else {
+          showToast('Вебхук пуша ещё не задан — смотрите предпросмотр сообщения выше!', 'info');
+        }
+      }
+
+      async function handleBotSync() {
+        const user = PlatformBridge.getUser(state.profile.name);
+        PlatformBridge.sendToBot({
+          action: 'sync_smenapro',
+          user_key: user.userKey,
+          platform: user.platform,
+          sync_code: state.profile.syncCode,
+          notifications: state.notifications,
+          schedule: state.schedule,
+          checklist: state.checklist
+        });
+
+        const res = await CloudSync.pushState(true);
+        PlatformBridge.haptic(res.ok ? 'success' : 'warning');
+        renderAll();
+      }
+
+      // === ГЛАВНЫЙ РЕНДЕР ===
+      function renderAll() {
+        applyTheme();
+        renderShellChrome();
+
+        const main = document.getElementById('mainContent');
+        if (ui.activeTab === 'calendar') main.innerHTML = renderCalendarTab();
+        else if (ui.activeTab === 'stats') main.innerHTML = renderStatsTab();
+        else if (ui.activeTab === 'reminders') main.innerHTML = renderRemindersTab();
+        else main.innerHTML = renderSettingsTab();
+
+        bindTabInputs();
+        renderModals();
+      }
+
+      // === ЕДИНОЕ ДЕЛЕГИРОВАНИЕ КЛИКОВ ===
+      document.addEventListener('click', async (e) => {
+        const tabBtn = e.target.closest('.tab-btn');
+        if (tabBtn) {
+          ui.activeTab = tabBtn.dataset.tab;
+          PlatformBridge.haptic('selection');
+          renderAll();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+
+        if (e.target.closest('#btnToday')) {
+          const t = new Date();
+          ui.viewYear = t.getFullYear();
+          ui.viewMonth = t.getMonth();
+          ui.selectedChartMonth = t.getMonth();
+          ui.calendarMode = 'month';
+          ui.activeTab = 'calendar';
+          PlatformBridge.haptic('light');
+          renderAll();
+          return;
+        }
+
+        const el = e.target.closest('[data-action]');
+        if (!el) return;
+        const act = el.dataset.action;
+
+        switch (act) {
+          case 'go-checklist':
+            ui.activeTab = 'reminders';
+            PlatformBridge.haptic('medium');
+            renderAll();
+            setTimeout(() => {
+              const card = document.getElementById('checklistAnchor');
+              if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 60);
+            break;
+
+          case 'go-calendar':
+            ui.activeTab = 'calendar';
+            PlatformBridge.haptic('light');
+            renderAll();
+            break;
+
+          case 'cal-mode':
+            ui.calendarMode = el.dataset.mode;
+            PlatformBridge.haptic('selection');
+            renderAll();
+            break;
+
+          case 'cal-prev':
+            if (ui.calendarMode === 'year') ui.viewYear--;
+            else { ui.viewMonth--; if (ui.viewMonth < 0) { ui.viewMonth = 11; ui.viewYear--; } }
+            PlatformBridge.haptic('light');
+            renderAll();
+            break;
+
+          case 'cal-next':
+            if (ui.calendarMode === 'year') ui.viewYear++;
+            else { ui.viewMonth++; if (ui.viewMonth > 11) { ui.viewMonth = 0; ui.viewYear++; } }
+            PlatformBridge.haptic('light');
+            renderAll();
+            break;
+
+          case 'open-month':
+            ui.viewMonth = Number(el.dataset.month);
+            ui.calendarMode = 'month';
+            PlatformBridge.haptic('selection');
+            renderAll();
+            break;
+
+          case 'edit-day':
+            ui.editingDate = el.dataset.date;
+            PlatformBridge.haptic('light');
+            renderModals();
+            break;
+
+          case 'close-modal':
+            closeAllModals();
+            break;
+
+          case 'bonus-add': {
+            const inp = document.getElementById('shBonus');
+            if (inp) {
+              inp.value = (Number(inp.value) || 0) + Number(el.dataset.delta);
+              inp.dispatchEvent(new Event('input'));
+              PlatformBridge.haptic('light');
+            }
+            break;
+          }
+
+          case 'reset-day':
+            delete state.overrides[el.dataset.date];
+            saveState();
+            PlatformBridge.haptic('warning');
+            closeAllModals();
+            renderAll();
+            showToast('День сброшен к базовому графику', 'info');
+            break;
+
+          case 'toggle-partner':
+            state.partner.enabled = !state.partner.enabled;
+            saveState();
+            PlatformBridge.haptic('light');
+            renderAll();
+            break;
+
+          case 'open-partner-sheet':
+            ui.showPartnerSheet = true;
+            PlatformBridge.haptic('light');
+            renderModals();
+            break;
+
+          case 'partner-tab':
+            ui.partnerSheetTab = el.dataset.tab;
+            PlatformBridge.haptic('selection');
+            renderModals();
+            break;
+
+          case 'copy-share-code': {
+            const ok = copyTextSafely(el.dataset.code);
+            PlatformBridge.haptic(ok ? 'success' : 'error');
+            showToast(ok ? 'Код синхронизации скопирован!' : 'Не удалось скопировать', ok ? 'success' : 'error');
+            break;
+          }
+
+          case 'share-partner-link': {
+            const links = buildShareLinks();
+            const preferredUrl = PlatformBridge.platform === 'max'
+              ? (links.maxLink || links.webLink)
+              : PlatformBridge.platform === 'telegram'
+                ? (links.tgLink || links.webLink)
+                : (links.webLink || links.tgLink || links.maxLink);
+            const msg = `Подключи мой график смен в СменаPro, чтобы видеть наши общие выходные! Код: ${links.preferredCode}`;
+            PlatformBridge.haptic('medium');
+            PlatformBridge.share(msg, preferredUrl);
+            break;
+          }
+
+          case 'connect-partner-code': {
+            const inp = document.getElementById('inpPartnerCode');
+            connectPartnerByCode(inp ? inp.value : '');
+            break;
+          }
+
+          case 'save-partner-manual': {
+            const nm = (document.getElementById('inpPartnerName').value || 'Партнёр').trim();
+            const pr = document.getElementById('selPartnerPreset').value;
+            const sd = document.getElementById('inpPartnerStart').value || getTodayISO();
+            state.partner = { ...state.partner, enabled: true, mode: 'manual', name: nm, preset: pr, startDate: sd, overrides: {} };
+            saveState();
+            PlatformBridge.haptic('success');
+            closeAllModals();
+            renderAll();
+            showToast(`График «${nm}» включён!`, 'success');
+            break;
+          }
+
+          case 'stats-scope':
+            ui.statsScope = el.dataset.scope;
+            PlatformBridge.haptic('selection');
+            renderAll();
+            break;
+
+          case 'stats-prev':
+            if (ui.statsScope === 'year') ui.viewYear--;
+            else { ui.viewMonth--; if (ui.viewMonth < 0) { ui.viewMonth = 11; ui.viewYear--; } ui.selectedChartMonth = ui.viewMonth; }
+            PlatformBridge.haptic('light');
+            renderAll();
+            break;
+
+          case 'stats-next':
+            if (ui.statsScope === 'year') ui.viewYear++;
+            else { ui.viewMonth++; if (ui.viewMonth > 11) { ui.viewMonth = 0; ui.viewYear++; } ui.selectedChartMonth = ui.viewMonth; }
+            PlatformBridge.haptic('light');
+            renderAll();
+            break;
+
+          case 'chart-metric':
+            ui.statsMetric = el.dataset.metric;
+            PlatformBridge.haptic('selection');
+            renderAll();
+            break;
+
+          case 'chart-month':
+            ui.selectedChartMonth = Number(el.dataset.month);
+            PlatformBridge.haptic('selection');
+            renderAll();
+            break;
+
+          case 'toggle-pay-config':
+            ui.payConfigOpen = !ui.payConfigOpen;
+            PlatformBridge.haptic('light');
+            renderAll();
+            break;
+
+          case 'pay-type':
+            state.schedule.payType = el.dataset.type;
+            if (el.dataset.type === 'hour' && state.schedule.payRate > 3000) state.schedule.payRate = 450;
+            if (el.dataset.type === 'shift' && state.schedule.payRate < 1000) state.schedule.payRate = 6800;
+            if (el.dataset.type === 'salary' && state.schedule.payRate < 20000) state.schedule.payRate = 85000;
+            saveState();
+            PlatformBridge.haptic('selection');
+            renderAll();
+            break;
+
+          case 'set-ot':
+            state.schedule.overtimeMultiplier = Number(el.dataset.val);
+            saveState();
+            PlatformBridge.haptic('selection');
+            renderAll();
+            break;
+
+          case 'set-night-pct':
+            state.schedule.nightBonusPercent = Number(el.dataset.val);
+            saveState();
+            PlatformBridge.haptic('selection');
+            renderAll();
+            break;
+
+          case 'toggle-push':
+            state.notifications.enabled = !state.notifications.enabled;
+            saveState();
+            PlatformBridge.haptic('light');
+            renderAll();
+            break;
+
+          case 'push-mode':
+            state.notifications.mode = el.dataset.mode;
+            saveState();
+            PlatformBridge.haptic('selection');
+            renderAll();
+            break;
+
+          case 'toggle-check': {
+            const it = state.checklist.find(c => c.id === el.dataset.id);
+            if (it) {
+              it.checked = !it.checked;
+              saveState();
+              PlatformBridge.haptic(it.checked ? 'success' : 'light');
+              renderAll();
+            }
+            break;
+          }
+
+          case 'del-check':
+            state.checklist = state.checklist.filter(c => c.id !== el.dataset.id);
+            saveState();
+            PlatformBridge.haptic('warning');
+            renderAll();
+            break;
+
+          case 'reset-checks':
+            state.checklist.forEach(c => { c.checked = false; });
+            saveState();
+            PlatformBridge.haptic('light');
+            renderAll();
+            showToast('Галочки чек-листа сброшены', 'info');
+            break;
+
+          case 'preview-skin':
+            ui.previewSkin = el.dataset.skin;
+            PlatformBridge.haptic('selection');
+            renderAll();
+            break;
+
+          case 'sync-bot':
+            handleBotSync();
+            break;
+
+          case 'test-push':
+            handleTestPush();
+            break;
+
+          case 'copy-my-code': {
+            const ok = copyTextSafely(state.profile.syncCode);
+            PlatformBridge.haptic(ok ? 'success' : 'error');
+            showToast(ok ? `Код ${state.profile.syncCode} скопирован!` : 'Ошибка копирования', ok ? 'success' : 'error');
+            break;
+          }
+
+          case 'set-preset': {
+            const pr = PRESETS[el.dataset.preset];
+            if (pr) {
+              state.schedule.preset = pr.id;
+              state.schedule.defaultHours = pr.defaultHours;
+              state.schedule.defaultStartTime = pr.defaultStart;
+              saveState();
+              PlatformBridge.haptic('selection');
+              renderAll();
+              showToast(`График изменён на «${pr.label}»`, 'success');
+            }
+            break;
+          }
+
+          case 'add-cycle-step':
+            state.schedule.customCycle.push(el.dataset.type);
+            saveState();
+            PlatformBridge.haptic('light');
+            renderAll();
+            break;
+
+          case 'del-cycle-step':
+            if (state.schedule.customCycle.length > 1) {
+              state.schedule.customCycle.splice(Number(el.dataset.idx), 1);
+              saveState();
+              PlatformBridge.haptic('light');
+              renderAll();
+            } else {
+              showToast('Минимум 1 день в цикле', 'warning');
+            }
+            break;
+
+          case 'clear-cycle':
+            state.schedule.customCycle = ['day', 'off'];
+            saveState();
+            PlatformBridge.haptic('warning');
+            renderAll();
+            break;
+
+          case 'set-theme':
+            state.themeMode = el.dataset.mode;
+            saveState();
+            PlatformBridge.haptic('selection');
+            renderAll();
+            break;
+
+          case 'export-ics':
+            exportYearICS();
+            break;
+
+          case 'export-json':
+            downloadFile(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }), `SmenaPro_backup_${getTodayISO()}.json`);
+            PlatformBridge.haptic('success');
+            showToast('Резервная копия JSON сохранена', 'success');
+            break;
+
+          case 'open-import':
+            ui.showImportModal = true;
+            renderModals();
+            break;
+
+          case 'copy-json-now': {
+            const ok = copyTextSafely(JSON.stringify(state));
+            showToast(ok ? 'Текущий JSON скопирован' : 'Ошибка копирования', ok ? 'success' : 'error');
+            break;
+          }
+
+          case 'apply-import': {
+            const raw = (document.getElementById('txtImportJson').value || '').trim();
+            if (!raw) { showToast('Вставьте JSON или выберите файл', 'warning'); return; }
+            try {
+              const p = JSON.parse(raw);
+              if (!p || !p.schedule) throw new Error('bad');
+              const def = createDefaultState();
+              state = {
+                ...def, ...p,
+                profile: { ...def.profile, ...(p.profile || {}) },
+                schedule: { ...def.schedule, ...(p.schedule || {}) },
+                partner: { ...def.partner, ...(p.partner || {}) },
+                notifications: { ...def.notifications, ...(p.notifications || {}) },
+                overrides: p.overrides || {},
+                checklist: Array.isArray(p.checklist) ? p.checklist : def.checklist
+              };
+              saveState();
+              PlatformBridge.haptic('success');
+              closeAllModals();
+              renderAll();
+              showToast('Данные восстановлены из бэкапа!', 'success');
+            } catch (_) {
+              PlatformBridge.haptic('error');
+              showToast('Некорректный формат JSON', 'error');
+            }
+            break;
+          }
+
+          case 'open-reset':
+            ui.showResetModal = true;
+            PlatformBridge.haptic('warning');
+            renderModals();
+            break;
+
+          case 'confirm-reset':
+            localStorage.removeItem(STORAGE_KEY);
+            state = createDefaultState();
+            saveState();
+            PlatformBridge.haptic('success');
+            closeAllModals();
+            renderAll();
+            showToast('Данные сброшены к базовому графику 1/3', 'info');
+            break;
+
+          // Диагностика Supabase
+          case 'diag-test-sb': {
+            PlatformBridge.haptic('medium');
+            const res = await CloudSync.testConnection();
+            renderAll();
+            showToast(res.message, res.ok ? 'success' : 'error');
+            break;
+          }
+
+          case 'diag-sync-now': {
+            PlatformBridge.haptic('medium');
+            const res = await CloudSync.pushState(true);
+            renderAll();
+            if (res.ok) PlatformBridge.haptic('success');
+            break;
+          }
+        }
+      });
+
+      // === СТАРТ ПРИЛОЖЕНИЯ ===
+      function bootstrap() {
+        PlatformBridge.init();
+        state = loadState();
+        ui.previewSkin = PlatformBridge.platform === 'max' ? 'max' : 'telegram';
+
+        renderAll();
+
+        // Автоподхват кода синхронизации партнёра из диплинка (?startapp=sync_...)
+        const startParam = PlatformBridge.getStartParam();
+        if (startParam && startParam.startsWith('sync_')) {
+          connectPartnerByCode(startParam, true);
+        }
+
+        // Тихая фоновая синхронизация с Supabase при старте (без навязчивых ошибок)
+        if (CloudSync.isConfigured()) {
+          CloudSync.pushState(false);
+        }
+
+        // Живое обновление таймера каждые 30 секунд
+        setInterval(() => {
+          renderShellChrome();
+        }, 30000);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootstrap);
+      } else {
+        bootstrap();
+      }
+    })();
+  </script>
+</body>
+</html>
